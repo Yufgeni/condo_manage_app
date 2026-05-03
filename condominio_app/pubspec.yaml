@@ -1,0 +1,37 @@
+name: condominio_app
+description: A Flutter application for managing a condominium with different user profiles.
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  provider: ^6.0.0
+  http: ^1.1.0
+  image_picker: ^1.0.7
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+
+  fonts:
+    - family: CustomFont
+      fonts:
+        - asset: assets/fonts/CustomFont.ttf
+        - asset: assets/fonts/CustomFont-Bold.ttf
+          weight: 700
