@@ -4,6 +4,7 @@ import 'app.dart';
 import 'data/providers/auth_provider.dart';
 import 'data/providers/resident_provider.dart';
 import 'data/providers/guard_provider.dart';
+import 'data/providers/admin_provider.dart';
 
 void main() {
   runApp(
@@ -12,6 +13,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ResidentProvider()),
         ChangeNotifierProvider(create: (_) => GuardProvider()),
+        ChangeNotifierProvider(create: (_) => AdminProvider()),
       ],
       child: const MyApp(),
     ),

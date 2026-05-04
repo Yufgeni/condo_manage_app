@@ -56,17 +56,30 @@ class _GuardDashboardState extends State<GuardDashboard> {
                 label: Text('Turno: ${guardProvider.guard!.shift}'),
               ),
             const SizedBox(height: 24),
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppConstants.routeGuardUpload),
-                icon: const Icon(Icons.upload),
-                label: const Text('Subir reporte con imagen'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 32, vertical: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.pushNamed(
+                        context, AppConstants.routeGuardUpload),
+                    icon: const Icon(Icons.upload),
+                    label: const Text('Subir reporte'),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.pushNamed(
+                        context, AppConstants.routeGuardResidents),
+                    icon: const Icon(Icons.people),
+                    label: const Text('Ver Residentes'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             const Text('Reportes recientes',

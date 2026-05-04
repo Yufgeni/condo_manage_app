@@ -55,7 +55,8 @@ class AdminDashboard extends StatelessWidget {
                     title: 'Reportes',
                     icon: Icons.bar_chart,
                     color: Colors.purple,
-                    onTap: () {},
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeAdminReports),
                   ),
                 ],
               ),

@@ -59,6 +59,11 @@ class AdminDrawer extends StatelessWidget {
             title: const Text('Pagos'),
             onTap: () => Navigator.pushNamed(context, AppConstants.routePayments),
           ),
+          ListTile(
+            leading: const Icon(Icons.bar_chart),
+            title: const Text('Reportes'),
+            onTap: () => Navigator.pushNamed(context, AppConstants.routeAdminReports),
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),

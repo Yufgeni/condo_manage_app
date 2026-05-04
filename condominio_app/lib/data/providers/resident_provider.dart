@@ -14,6 +14,40 @@ class ResidentProvider extends ChangeNotifier {
   List<PaymentModel> get payments => _payments;
   bool get isLoading => _isLoading;
 
+  // Mock data for all residents
+  final List<ResidentModel> _mockResidents = [
+    ResidentModel(
+      id: '2',
+      userId: '2',
+      name: 'Juan Pérez',
+      email: 'residente@condominio.com',
+      phone: '5512345678',
+      unitNumber: 'A-101',
+      car: CarInfo(
+        brand: 'Toyota',
+        year: '2020',
+        color: 'Blanco',
+        plates: 'ABC-1234',
+      ),
+    ),
+    ResidentModel(
+      id: '4',
+      userId: '4',
+      name: 'María García',
+      email: 'maria@condominio.com',
+      phone: '5587654321',
+      unitNumber: 'B-202',
+      car: CarInfo(
+        brand: 'Honda',
+        year: '2022',
+        color: 'Gris',
+        plates: 'XYZ-9876',
+      ),
+    ),
+  ];
+
+  List<ResidentModel> get allResidents => _mockResidents;
+
   // Mock resident data
   final ResidentModel _mockResident = ResidentModel(
     id: '2',

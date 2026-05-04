@@ -21,4 +21,6 @@ class AppConstants {
   static const String routeResidents = '/residents';
   static const String routeGuards = '/guards';
   static const String routePayments = '/payments';
+  static const String routeAdminReports = '/admin-reports';
+  static const String routeGuardResidents = '/guard-residents';
 }
