@@ -4,7 +4,14 @@ import '../screens/auth/login_screen.dart';
 import '../screens/admin/admin_dashboard.dart';
 import '../screens/admin/residents_screen.dart';
 import '../screens/admin/guards_screen.dart';
-import '../screens/admin/payments_screens.dart';
+import '../screens/admin/maintenance_screen.dart';
+import '../screens/admin/add_resident_screen.dart';
+import '../screens/admin/add_maintenance_screen.dart';
+import '../screens/resident/visitors_screen.dart';
+import '../screens/resident/add_visitor_screen.dart';
+import '../screens/common/admin_visitor_list_screen.dart';
+import '../screens/common/resident_visitor_calendar_screen.dart';
+import '../screens/common/view_reports_screen.dart';
 import '../screens/resident/resident_dashboard.dart';
 import '../screens/resident/payment_history_screen.dart';
 import '../screens/resident/guard_on_duty_screen.dart';
@@ -21,10 +28,20 @@ class AppRoutes {
         AppConstants.routeAdminDashboard: (_) => const AdminDashboard(),
         AppConstants.routeResidents: (_) => const ResidentsScreen(),
         AppConstants.routeGuards: (_) => const GuardsScreen(),
-        AppConstants.routePayments: (_) => const PaymentsScreen(),
+        AppConstants.routeMaintenance: (_) => const MaintenanceScreen(),
+        AppConstants.routeAddResident: (_) => const AddResidentScreen(),
+        AppConstants.routeAddMaintenance: (_) => const AddMaintenanceScreen(),
         AppConstants.routeAdminReports: (_) => const AdminReportsScreen(),
         AppConstants.routeResidentDashboard: (_) => const ResidentDashboard(),
         AppConstants.routePaymentHistory: (_) => const PaymentHistoryScreen(),
+        AppConstants.routeVisitors: (_) => const VisitorsScreen(),
+        AppConstants.routeAdminVisitors: (_) => const AdminVisitorListScreen(),
+        AppConstants.routeViewReports: (_) => const ViewReportsScreen(),
+        AppConstants.routeResidentVisitorCalendar: (context) {
+          final residentId = ModalRoute.of(context)!.settings.arguments as String;
+          return ResidentVisitorCalendarScreen(residentId: residentId);
+        },
+        AppConstants.routeAddVisitor: (_) => const AddVisitorScreen(),
         AppConstants.routeGuardOnDuty: (_) => const GuardOnDutyScreen(),
         AppConstants.routeResidentProfile: (_) => const ResidentProfileScreen(),
         AppConstants.routeGuardDashboard: (_) => const GuardDashboard(),

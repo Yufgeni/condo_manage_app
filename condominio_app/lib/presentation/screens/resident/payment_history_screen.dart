@@ -5,7 +5,8 @@ import '../../../data/providers/resident_provider.dart';
 import '../../widgets/resident/payment_card.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
-  const PaymentHistoryScreen({Key? key}) : super(key: key);
+  final String? residentId;
+  const PaymentHistoryScreen({Key? key, this.residentId}) : super(key: key);
 
   @override
   State<PaymentHistoryScreen> createState() => _PaymentHistoryScreenState();
@@ -16,10 +17,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userId =
-          Provider.of<AuthProvider>(context, listen: false).currentUser?.id ?? '';
+      final id = widget.residentId ??
+          Provider.of<AuthProvider>(context, listen: false).currentUser?.id ??
+          '';
       Provider.of<ResidentProvider>(context, listen: false)
-          .loadResidentData(userId);
+          .loadResidentData(id);
     });
   }
 

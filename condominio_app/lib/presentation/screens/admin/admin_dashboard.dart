@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../widgets/admin/admin_drawer.dart';
+import '../../widgets/common/panic_button.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -12,7 +13,10 @@ class AdminDashboard extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Admin Dashboard')),
+      appBar: AppBar(
+        title: const Text('Admin Dashboard'),
+        actions: const [PanicButton()],
+      ),
       drawer: const AdminDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -45,11 +49,25 @@ class AdminDashboard extends StatelessWidget {
                         context, AppConstants.routeGuards),
                   ),
                   _DashboardCard(
-                    title: 'Pagos',
-                    icon: Icons.payment,
+                    title: 'Mantenimiento',
+                    icon: Icons.build,
                     color: Colors.orange,
                     onTap: () => Navigator.pushNamed(
-                        context, AppConstants.routePayments),
+                        context, AppConstants.routeMaintenance),
+                  ),
+                  _DashboardCard(
+                    title: 'Ver Visitas',
+                    icon: Icons.group_add_outlined,
+                    color: Colors.redAccent,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeAdminVisitors),
+                  ),
+                  _DashboardCard(
+                    title: 'Visualizar Reportes',
+                    icon: Icons.assignment_outlined,
+                    color: Colors.teal,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeViewReports),
                   ),
                   _DashboardCard(
                     title: 'Reportes',

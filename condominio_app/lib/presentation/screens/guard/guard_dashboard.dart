@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/guard_provider.dart';
+import '../../widgets/common/panic_button.dart';
+import '../../widgets/guard/guard_drawer.dart';
 
 class GuardDashboard extends StatefulWidget {
   const GuardDashboard({Key? key}) : super(key: key);
@@ -29,8 +31,9 @@ class _GuardDashboardState extends State<GuardDashboard> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Guard Dashboard'),
+        title: const Text('Panel de Vigilancia'),
         actions: [
+          const PanicButton(),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
@@ -40,67 +43,114 @@ class _GuardDashboardState extends State<GuardDashboard> {
           ),
         ],
       ),
+      drawer: const GuardDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Hola, ${authProvider.currentUser?.name ?? ''}',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            if (guardProvider.guard != null)
-              Chip(
-                avatar: const Icon(Icons.access_time, size: 16),
-                label: Text('Turno: ${guardProvider.guard!.shift}'),
-              ),
-            const SizedBox(height: 24),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => Navigator.pushNamed(
-                        context, AppConstants.routeGuardUpload),
-                    icon: const Icon(Icons.upload),
-                    label: const Text('Subir reporte'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => Navigator.pushNamed(
-                        context, AppConstants.routeGuardResidents),
-                    icon: const Icon(Icons.people),
-                    label: const Text('Ver Residentes'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueGrey,
-                      foregroundColor: Colors.white,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hola, ${authProvider.currentUser?.name ?? ''}',
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                  ),
+                    if (guardProvider.guard != null)
+                      Text(
+                        'Turno: ${guardProvider.guard!.shift}',
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                  ],
+                ),
+                const CircleAvatar(
+                  radius: 25,
+                  child: Icon(Icons.security),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            const Text('Reportes recientes',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
             Expanded(
-              child: guardProvider.uploads.isEmpty
-                  ? const Center(child: Text('Sin reportes aún'))
-                  : ListView.builder(
-                      itemCount: guardProvider.uploads.length,
-                      itemBuilder: (_, i) {
-                        final upload = guardProvider.uploads[i];
-                        return Card(
-                          child: ListTile(
-                            leading: const Icon(Icons.image),
-                            title: Text(upload['text'] ?? ''),
-                            subtitle: Text(upload['date'] ?? ''),
-                          ),
-                        );
-                      },
-                    ),
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                children: [
+                  _GuardCard(
+                    title: 'Subir Reporte',
+                    icon: Icons.upload_file,
+                    color: Colors.blue,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeGuardUpload),
+                  ),
+                  _GuardCard(
+                    title: 'Ver Residentes',
+                    icon: Icons.people_alt,
+                    color: Colors.blueGrey,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeGuardResidents),
+                  ),
+                  _GuardCard(
+                    title: 'Ver Visitantes',
+                    icon: Icons.group_add_outlined,
+                    color: Colors.orange,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeAdminVisitors),
+                  ),
+                  _GuardCard(
+                    title: 'Visualizar Reportes',
+                    icon: Icons.assignment_outlined,
+                    color: Colors.teal,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeViewReports),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GuardCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _GuardCard({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(15),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: color.withOpacity(0.1),
+              child: Icon(icon, size: 30, color: color),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

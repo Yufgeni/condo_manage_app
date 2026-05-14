@@ -20,7 +20,14 @@ class AppConstants {
   static const String routeGuardUpload = '/guard-upload';
   static const String routeResidents = '/residents';
   static const String routeGuards = '/guards';
-  static const String routePayments = '/payments';
+  static const String routeMaintenance = '/maintenance';
+  static const String routeAddResident = '/add-resident';
+  static const String routeAddMaintenance = '/add-maintenance';
+  static const String routeVisitors = '/visitors';
+  static const String routeAdminVisitors = '/admin-visitors';
+  static const String routeViewReports = '/view-reports';
+  static const String routeResidentVisitorCalendar = '/resident-visitor-calendar';
+  static const String routeAddVisitor = '/add-visitor';
   static const String routeAdminReports = '/admin-reports';
   static const String routeGuardResidents = '/guard-residents';
 }

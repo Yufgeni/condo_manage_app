@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
 
-class AdminDrawer extends StatelessWidget {
-  const AdminDrawer({Key? key}) : super(key: key);
+class GuardDrawer extends StatelessWidget {
+  const GuardDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class AdminDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(color: Color(0xFF1565C0)),
+            decoration: const BoxDecoration(color: Colors.blueGrey),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
@@ -23,12 +23,12 @@ class AdminDrawer extends StatelessWidget {
                 const CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.admin_panel_settings,
-                      size: 36, color: Color(0xFF1565C0)),
+                  child: Icon(Icons.security,
+                      size: 36, color: Colors.blueGrey),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  authProvider.currentUser?.name ?? 'Administrador',
+                  authProvider.currentUser?.name ?? 'Vigilante',
                   style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
                 Text(
@@ -42,26 +42,27 @@ class AdminDrawer extends StatelessWidget {
             leading: const Icon(Icons.dashboard),
             title: const Text('Dashboard'),
             onTap: () => Navigator.pushReplacementNamed(
-                context, AppConstants.routeAdminDashboard),
+                context, AppConstants.routeGuardDashboard),
           ),
           ListTile(
-            leading: const Icon(Icons.people),
-            title: const Text('Residentes'),
-            onTap: () => Navigator.pushNamed(context, AppConstants.routeResidents),
+            leading: const Icon(Icons.upload_file),
+            title: const Text('Subir Reporte'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeGuardUpload);
+            },
           ),
           ListTile(
-            leading: const Icon(Icons.security),
-            title: const Text('Vigilantes'),
-            onTap: () => Navigator.pushNamed(context, AppConstants.routeGuards),
-          ),
-          ListTile(
-            leading: const Icon(Icons.build),
-            title: const Text('Mantenimiento'),
-            onTap: () => Navigator.pushNamed(context, AppConstants.routeMaintenance),
+            leading: const Icon(Icons.people_alt),
+            title: const Text('Ver Residentes'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeGuardResidents);
+            },
           ),
           ListTile(
             leading: const Icon(Icons.group_add_outlined),
-            title: const Text('Ver visitantes'),
+            title: const Text('Ver Visitantes'),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppConstants.routeAdminVisitors);
@@ -74,11 +75,6 @@ class AdminDrawer extends StatelessWidget {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppConstants.routeViewReports);
             },
-          ),
-          ListTile(
-            leading: const Icon(Icons.bar_chart),
-            title: const Text('Reportes'),
-            onTap: () => Navigator.pushNamed(context, AppConstants.routeAdminReports),
           ),
           const Divider(),
           ListTile(

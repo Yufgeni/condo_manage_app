@@ -5,7 +5,7 @@ class ResidentModel {
   final String email;
   final String phone;
   final String unitNumber;
-  final CarInfo? car;
+  final List<CarInfo> cars;
   final String? photoUrl;
 
   ResidentModel({
@@ -15,7 +15,7 @@ class ResidentModel {
     required this.email,
     required this.phone,
     required this.unitNumber,
-    this.car,
+    this.cars = const [],
     this.photoUrl,
   });
 
@@ -27,7 +27,8 @@ class ResidentModel {
       email: json['email'] ?? '',
       phone: json['phone'] ?? '',
       unitNumber: json['unitNumber'] ?? '',
-      car: json['car'] != null ? CarInfo.fromJson(json['car']) : null,
+      cars: (json['cars'] as List?)?.map((c) => CarInfo.fromJson(c)).toList() ??
+          (json['car'] != null ? [CarInfo.fromJson(json['car'])] : []),
       photoUrl: json['photoUrl'],
     );
   }
@@ -39,13 +40,13 @@ class ResidentModel {
         'email': email,
         'phone': phone,
         'unitNumber': unitNumber,
-        'car': car?.toJson(),
+        'cars': cars.map((c) => c.toJson()).toList(),
         'photoUrl': photoUrl,
       };
 
   ResidentModel copyWith({
     String? phone,
-    CarInfo? car,
+    List<CarInfo>? cars,
     String? photoUrl,
   }) {
     return ResidentModel(
@@ -55,7 +56,7 @@ class ResidentModel {
       email: email,
       phone: phone ?? this.phone,
       unitNumber: unitNumber,
-      car: car ?? this.car,
+      cars: cars ?? this.cars,
       photoUrl: photoUrl ?? this.photoUrl,
     );
   }

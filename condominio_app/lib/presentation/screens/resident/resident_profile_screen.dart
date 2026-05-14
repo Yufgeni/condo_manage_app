@@ -39,10 +39,13 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
         Provider.of<ResidentProvider>(context, listen: false).resident;
     if (resident != null) {
       _phoneController.text = resident.phone;
-      _brandController.text = resident.car?.brand ?? '';
-      _yearController.text = resident.car?.year ?? '';
-      _colorController.text = resident.car?.color ?? '';
-      _platesController.text = resident.car?.plates ?? '';
+      if (resident.cars.isNotEmpty) {
+        final car = resident.cars.first;
+        _brandController.text = car.brand;
+        _yearController.text = car.year;
+        _colorController.text = car.color;
+        _platesController.text = car.plates;
+      }
     }
   }
 
@@ -51,12 +54,14 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
     final provider = Provider.of<ResidentProvider>(context, listen: false);
     final success = await provider.updateProfile(
       phone: _phoneController.text,
-      car: CarInfo(
-        brand: _brandController.text,
-        year: _yearController.text,
-        color: _colorController.text,
-        plates: _platesController.text,
-      ),
+      cars: [
+        CarInfo(
+          brand: _brandController.text,
+          year: _yearController.text,
+          color: _colorController.text,
+          plates: _platesController.text,
+        ),
+      ],
     );
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

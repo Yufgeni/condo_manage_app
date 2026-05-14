@@ -23,12 +23,14 @@ class ResidentProvider extends ChangeNotifier {
       email: 'residente@condominio.com',
       phone: '5512345678',
       unitNumber: 'A-101',
-      car: CarInfo(
-        brand: 'Toyota',
-        year: '2020',
-        color: 'Blanco',
-        plates: 'ABC-1234',
-      ),
+      cars: [
+        CarInfo(
+          brand: 'Toyota',
+          year: '2020',
+          color: 'Blanco',
+          plates: 'ABC-1234',
+        ),
+      ],
     ),
     ResidentModel(
       id: '4',
@@ -37,16 +39,23 @@ class ResidentProvider extends ChangeNotifier {
       email: 'maria@condominio.com',
       phone: '5587654321',
       unitNumber: 'B-202',
-      car: CarInfo(
-        brand: 'Honda',
-        year: '2022',
-        color: 'Gris',
-        plates: 'XYZ-9876',
-      ),
+      cars: [
+        CarInfo(
+          brand: 'Honda',
+          year: '2022',
+          color: 'Gris',
+          plates: 'XYZ-9876',
+        ),
+      ],
     ),
   ];
 
   List<ResidentModel> get allResidents => _mockResidents;
+
+  void addResident(ResidentModel resident) {
+    _mockResidents.add(resident);
+    notifyListeners();
+  }
 
   // Mock resident data
   final ResidentModel _mockResident = ResidentModel(
@@ -56,12 +65,14 @@ class ResidentProvider extends ChangeNotifier {
     email: 'residente@condominio.com',
     phone: '5512345678',
     unitNumber: 'A-101',
-    car: CarInfo(
-      brand: 'Toyota',
-      year: '2020',
-      color: 'Blanco',
-      plates: 'ABC-1234',
-    ),
+    cars: [
+      CarInfo(
+        brand: 'Toyota',
+        year: '2020',
+        color: 'Blanco',
+        plates: 'ABC-1234',
+      ),
+    ],
   );
 
   Future<void> loadResidentData(String userId) async {
@@ -76,12 +87,12 @@ class ResidentProvider extends ChangeNotifier {
 
   Future<bool> updateProfile({
     required String phone,
-    required CarInfo car,
+    required List<CarInfo> cars,
   }) async {
     _isLoading = true;
     notifyListeners();
     await Future.delayed(const Duration(seconds: 1));
-    _resident = _resident?.copyWith(phone: phone, car: car);
+    _resident = _resident?.copyWith(phone: phone, cars: cars);
     _isLoading = false;
     notifyListeners();
     return true;

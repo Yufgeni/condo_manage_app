@@ -54,18 +54,22 @@ class GuardResidentsScreen extends StatelessWidget {
                             const Divider(),
                             _infoRow(Icons.phone, 'Teléfono', resident.phone),
                             const SizedBox(height: 8),
-                            if (resident.car != null) ...[
-                              _infoRow(
-                                Icons.directions_car,
-                                'Vehículo',
-                                '${resident.car!.brand} (${resident.car!.color})',
-                              ),
-                              const SizedBox(height: 8),
-                              _infoRow(
-                                Icons.vignette,
-                                'Placa',
-                                resident.car!.plates,
-                              ),
+                            if (resident.cars.isNotEmpty) ...[
+                              for (var car in resident.cars) ...[
+                                _infoRow(
+                                  Icons.directions_car,
+                                  'Vehículo',
+                                  '${car.brand} (${car.color})',
+                                ),
+                                const SizedBox(height: 4),
+                                _infoRow(
+                                  Icons.vignette,
+                                  'Placa',
+                                  car.plates,
+                                ),
+                                if (resident.cars.last != car)
+                                  const SizedBox(height: 8),
+                              ],
                             ] else ...[
                               _infoRow(
                                 Icons.directions_car_outlined,

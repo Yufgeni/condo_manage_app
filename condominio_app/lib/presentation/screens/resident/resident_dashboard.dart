@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
+import '../../widgets/common/panic_button.dart';
 
 class ResidentDashboard extends StatelessWidget {
   const ResidentDashboard({Key? key}) : super(key: key);
@@ -14,6 +15,7 @@ class ResidentDashboard extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Resident Dashboard'),
         actions: [
+          const PanicButton(),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
@@ -45,6 +47,13 @@ class ResidentDashboard extends StatelessWidget {
                     color: Colors.blue,
                     onTap: () => Navigator.pushNamed(
                         context, AppConstants.routePaymentHistory),
+                  ),
+                  _ResidentCard(
+                    title: 'Mis Visitantes',
+                    icon: Icons.group_add_outlined,
+                    color: Colors.orange,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeVisitors),
                   ),
                   _ResidentCard(
                     title: 'Vigilante en Turno',
