@@ -30,4 +30,6 @@ class AppConstants {
   static const String routeAddVisitor = '/add-visitor';
   static const String routeAdminReports = '/admin-reports';
   static const String routeGuardResidents = '/guard-residents';
+  static const String routeAdminProfiles = '/admin-profiles';
+  static const String routeAddProfile = '/add-profile';
 }

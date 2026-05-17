@@ -106,17 +106,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: Validators.validatePassword,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 40),
                   CustomButton(
                     text: 'Iniciar sesión',
                     onPressed: _login,
                     isLoading: authProvider.isLoading,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Credenciales de prueba:\nAdmin: ${AppConstants.adminEmail} / admin123\nResidente: residente@condominio.com / res123\nVigilante: vigilante@condominio.com / vig123',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[500], fontSize: 11),
                   ),
                 ],
               ),

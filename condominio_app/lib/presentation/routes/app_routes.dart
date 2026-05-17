@@ -21,11 +21,13 @@ import '../screens/guard/guard_upload_screen.dart';
 
 import '../screens/admin/admin_reports_screen.dart';
 import '../screens/guard/guard_residents_screen.dart';
+import '../screens/admin/admin_profiles_screen.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> get routes => {
         AppConstants.routeLogin: (_) => const LoginScreen(),
         AppConstants.routeAdminDashboard: (_) => const AdminDashboard(),
+        AppConstants.routeAdminProfiles: (_) => const AdminProfilesScreen(),
         AppConstants.routeResidents: (_) => const ResidentsScreen(),
         AppConstants.routeGuards: (_) => const GuardsScreen(),
         AppConstants.routeMaintenance: (_) => const MaintenanceScreen(),

@@ -1,16 +1,133 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/report_model.dart';
+import '../models/user_model.dart';
 import '../services/image_service.dart';
+import '../services/user_service.dart';
 
 class AdminProvider extends ChangeNotifier {
   final ImageService _imageService = ImageService();
+  final UserService _userService = UserService();
   
   List<ReportModel> _reports = [];
+  List<UserModel> _users = [];
   bool _isLoading = false;
+  String? _errorMessage;
 
   List<ReportModel> get reports => _reports;
+  List<UserModel> get users => _users;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+
+  Future<void> fetchUsers() async {
+    _isLoading = true;
+    notifyListeners();
+    _users = await _userService.getAllUsers();
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> verifyPassword(String password) async {
+    return await _userService.verifyPassword(password);
+  }
+
+  Future<bool> createProfile({
+    required String email,
+    required String password,
+    required String name,
+    required String lastName,
+    required String role,
+    required DateTime birthDate,
+    required int age,
+    String? phone,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final success = await _userService.createProfile(
+      email: email,
+      password: password,
+      name: name,
+      lastName: lastName,
+      role: role,
+      birthDate: birthDate,
+      age: age,
+      phone: phone,
+    );
+
+    if (!success) {
+      _errorMessage = 'Error al crear el perfil';
+    } else {
+      await fetchUsers();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> deleteUser(String userId) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _userService.deleteUser(userId);
+    if (success) {
+      _users.removeWhere((u) => u.id == userId);
+    }
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> updateUserRole(String userId, String newRole) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _userService.updateRole(userId, newRole);
+    if (success) {
+      final index = _users.indexWhere((u) => u.id == userId);
+      if (index != -1) {
+        _users[index] = UserModel(
+          id: _users[index].id,
+          email: _users[index].email,
+          name: _users[index].name,
+          lastName: _users[index].lastName,
+          role: newRole,
+          photoUrl: _users[index].photoUrl,
+          birthDate: _users[index].birthDate,
+          age: _users[index].age,
+          isOnDuty: _users[index].isOnDuty,
+        );
+      }
+    }
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> updateDutyStatus(String userId, bool isOnDuty) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _userService.updateDutyStatus(userId, isOnDuty);
+    if (success) {
+      final index = _users.indexWhere((u) => u.id == userId);
+      if (index != -1) {
+        _users[index] = UserModel(
+          id: _users[index].id,
+          email: _users[index].email,
+          name: _users[index].name,
+          lastName: _users[index].lastName,
+          role: _users[index].role,
+          photoUrl: _users[index].photoUrl,
+          birthDate: _users[index].birthDate,
+          age: _users[index].age,
+          isOnDuty: isOnDuty,
+        );
+      }
+    }
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
 
   Future<bool> uploadReport({
     required File image,

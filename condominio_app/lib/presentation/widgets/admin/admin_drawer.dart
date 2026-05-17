@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
+import '../../screens/admin/admin_profiles_screen.dart';
 
 class AdminDrawer extends StatelessWidget {
   const AdminDrawer({Key? key}) : super(key: key);
@@ -79,6 +80,17 @@ class AdminDrawer extends StatelessWidget {
             leading: const Icon(Icons.bar_chart),
             title: const Text('Reportes'),
             onTap: () => Navigator.pushNamed(context, AppConstants.routeAdminReports),
+          ),
+          ListTile(
+            leading: const Icon(Icons.account_circle),
+            title: const Text('Perfiles'),
+            onTap: () async {
+              Navigator.pop(context);
+              final confirmed = await AdminProfilesScreen.showPasswordDialog(context);
+              if (confirmed == true && context.mounted) {
+                Navigator.pushNamed(context, AppConstants.routeAdminProfiles);
+              }
+            },
           ),
           const Divider(),
           ListTile(

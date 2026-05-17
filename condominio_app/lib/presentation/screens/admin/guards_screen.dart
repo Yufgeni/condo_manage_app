@@ -1,46 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../data/providers/admin_provider.dart';
 
-class GuardsScreen extends StatelessWidget {
+class GuardsScreen extends StatefulWidget {
   const GuardsScreen({Key? key}) : super(key: key);
 
   @override
+  State<GuardsScreen> createState() => _GuardsScreenState();
+}
+
+class _GuardsScreenState extends State<GuardsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() =>
+        Provider.of<AdminProvider>(context, listen: false).fetchUsers());
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final guards = [
-      {'name': 'Carlos López', 'shift': 'Nocturno', 'status': true},
-      {'name': 'Pedro Ramírez', 'shift': 'Diurno', 'status': false},
-    ];
+    final adminProvider = Provider.of<AdminProvider>(context);
+    final guards = adminProvider.users
+        .where((u) => u.role == AppConstants.roleGuard)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Vigilantes')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.add),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: guards.length,
-        itemBuilder: (_, i) {
-          final g = guards[i];
-          final onDuty = g['status'] as bool;
-          return Card(
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor:
-                    onDuty ? Colors.green[100] : Colors.grey[200],
-                child: Icon(Icons.security,
-                    color: onDuty ? Colors.green : Colors.grey),
-              ),
-              title: Text(g['name'] as String),
-              subtitle: Text('Turno: ${g['shift']}'),
-              trailing: Chip(
-                label: Text(onDuty ? 'En turno' : 'Fuera de turno'),
-                backgroundColor:
-                    onDuty ? Colors.green[100] : Colors.grey[200],
-              ),
-            ),
-          );
-        },
-      ),
+      body: adminProvider.isLoading && guards.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : guards.isEmpty
+              ? const Center(child: Text('No hay vigilantes registrados'))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: guards.length,
+                  itemBuilder: (_, i) {
+                    final g = guards[i];
+                    return Card(
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor:
+                              g.isOnDuty ? Colors.green[100] : Colors.grey[200],
+                          child: Icon(Icons.security,
+                              color: g.isOnDuty ? Colors.green : Colors.grey),
+                        ),
+                        title: Text(g.fullName),
+                        subtitle: Text('Turno: ${g.isOnDuty ? g.shiftName : "Inactivo"}'),
+                        trailing: Chip(
+                          label: Text(g.isOnDuty ? 'En turno' : 'Fuera de turno'),
+                          backgroundColor:
+                              g.isOnDuty ? Colors.green[100] : Colors.grey[200],
+                          labelStyle: TextStyle(
+                            color: g.isOnDuty ? Colors.green[800] : Colors.grey[600],
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

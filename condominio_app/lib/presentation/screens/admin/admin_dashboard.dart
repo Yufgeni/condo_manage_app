@@ -4,6 +4,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../widgets/admin/admin_drawer.dart';
 import '../../widgets/common/panic_button.dart';
+import 'admin_profiles_screen.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -33,6 +34,7 @@ class AdminDashboard extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
+                childAspectRatio: 1.2,
                 children: [
                   _DashboardCard(
                     title: 'Residentes',
@@ -75,6 +77,17 @@ class AdminDashboard extends StatelessWidget {
                     color: Colors.purple,
                     onTap: () => Navigator.pushNamed(
                         context, AppConstants.routeAdminReports),
+                  ),
+                  _DashboardCard(
+                    title: 'Perfiles',
+                    icon: Icons.account_circle,
+                    color: Colors.indigo,
+                    onTap: () async {
+                      final confirmed = await AdminProfilesScreen.showPasswordDialog(context);
+                      if (confirmed == true && context.mounted) {
+                        Navigator.pushNamed(context, AppConstants.routeAdminProfiles);
+                      }
+                    },
                   ),
                 ],
               ),
