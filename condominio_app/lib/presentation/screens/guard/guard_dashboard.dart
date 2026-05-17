@@ -61,14 +61,19 @@ class _GuardDashboardState extends State<GuardDashboard> {
                     ),
                     if (guardProvider.guard != null)
                       Text(
-                        'Turno: ${guardProvider.guard!.shift}',
+                        'Turno: ${guardProvider.guard!.shiftName}',
                         style: const TextStyle(color: Colors.grey),
                       ),
                   ],
                 ),
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 25,
-                  child: Icon(Icons.security),
+                  backgroundImage: guardProvider.guard?.photoUrl != null
+                      ? NetworkImage(guardProvider.guard!.photoUrl!)
+                      : null,
+                  child: guardProvider.guard?.photoUrl == null
+                      ? const Icon(Icons.security)
+                      : null,
                 ),
               ],
             ),

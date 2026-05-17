@@ -1,37 +1,35 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import '../models/guard_model.dart';
+import '../models/user_model.dart';
 import '../services/image_service.dart';
+import '../services/user_service.dart';
 
 class GuardProvider extends ChangeNotifier {
   final ImageService _imageService = ImageService();
+  final UserService _userService = UserService();
 
-  GuardModel? _guard;
+  UserModel? _guard;
+  UserModel? _guardOnDuty;
   List<Map<String, dynamic>> _uploads = [];
   bool _isLoading = false;
 
-  GuardModel? get guard => _guard;
+  UserModel? get guard => _guard;
+  UserModel? get guardOnDuty => _guardOnDuty;
   List<Map<String, dynamic>> get uploads => _uploads;
   bool get isLoading => _isLoading;
-
-  // Mock guard
-  final GuardModel _mockGuard = GuardModel(
-    id: '3',
-    userId: '3',
-    name: 'Carlos López',
-    email: 'vigilante@condominio.com',
-    phone: '5598765432',
-    shift: 'Nocturno',
-    isOnDuty: true,
-  );
-
-  GuardModel get guardOnDuty => _mockGuard;
 
   Future<void> loadGuardData(String userId) async {
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 500));
-    _guard = _mockGuard;
+    _guard = await _userService.getUserById(userId);
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> fetchGuardOnDuty() async {
+    _isLoading = true;
+    notifyListeners();
+    _guardOnDuty = await _userService.getGuardOnDuty();
     _isLoading = false;
     notifyListeners();
   }

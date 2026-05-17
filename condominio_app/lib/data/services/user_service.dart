@@ -18,6 +18,40 @@ class UserService {
     }
   }
 
+  Future<UserModel?> getGuardOnDuty() async {
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select()
+          .eq('role', 'guard')
+          .eq('is_on_duty', true)
+          .maybeSingle();
+
+      if (response != null) {
+        return UserModel.fromJson(response);
+      }
+      return null;
+    } catch (e) {
+      print('Error getting guard on duty: $e');
+      return null;
+    }
+  }
+
+  Future<UserModel?> getUserById(String userId) async {
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .single();
+
+      return UserModel.fromJson(response);
+    } catch (e) {
+      print('Error getting user by id: $e');
+      return null;
+    }
+  }
+
   Future<bool> deleteUser(String userId) async {
     try {
       // Deleting from auth.users requires service_role or a custom function.
