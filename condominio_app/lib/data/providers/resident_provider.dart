@@ -79,6 +79,22 @@ class ResidentProvider extends ChangeNotifier {
     notifyListeners();
     return success;
   }
+
+  Future<bool> deleteVehicle(String vehicleId) async {
+    if (_resident == null) return false;
+    _isLoading = true;
+    notifyListeners();
+
+    final success = await _residentService.deleteVehicle(vehicleId);
+    if (success) {
+      final newCars = _resident!.cars.where((c) => c.id != vehicleId).toList();
+      _resident = _resident!.copyWith(cars: newCars);
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
   
   // Listado para el Administrador
   List<ResidentModel> _allResidents = [];

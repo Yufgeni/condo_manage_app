@@ -344,9 +344,17 @@ class _VehicleCardState extends State<_VehicleCard> {
               children: [
                 const Icon(Icons.directions_car, color: Color(0xFF1B5E20)),
                 if (!_isEditing)
-                  IconButton(
-                    icon: const Icon(Icons.edit, size: 20, color: Colors.blue),
-                    onPressed: () => setState(() => _isEditing = true),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20, color: Colors.blue),
+                        onPressed: () => setState(() => _isEditing = true),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                        onPressed: () => _confirmDelete(context, provider),
+                      ),
+                    ],
                   ),
               ],
             ),
@@ -425,6 +433,34 @@ class _VehicleCardState extends State<_VehicleCard> {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, ResidentProvider provider) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar vehículo'),
+        content: const Text('¿Está seguro de que desea eliminar este registro de automóvil?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && widget.car.id != null) {
+      final success = await provider.deleteVehicle(widget.car.id!);
+      if (context.mounted) {
+        UIUtils.showSnackBar(
+          context, 
+          success ? 'Vehículo eliminado correctamente' : 'Error al eliminar vehículo',
+          isError: !success
+        );
+      }
+    }
   }
 }
 

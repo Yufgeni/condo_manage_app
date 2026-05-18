@@ -126,4 +126,14 @@ class ResidentService {
       return false;
     }
   }
+
+  Future<bool> deleteVehicle(String vehicleId) async {
+    try {
+      await _supabase.from('vehicles').delete().eq('id', vehicleId);
+      return true;
+    } catch (e) {
+      print('Error al eliminar vehículo: $e');
+      return false;
+    }
+  }
 }
