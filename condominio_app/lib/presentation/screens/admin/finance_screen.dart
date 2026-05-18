@@ -10,6 +10,10 @@ class FinanceScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Finanzas'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       drawer: const AdminDrawer(),
       body: Padding(

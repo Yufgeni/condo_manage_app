@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../data/models/resident_model.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/resident_provider.dart';
+import '../../../core/utils/validators.dart';
 import '../../../core/utils/ui_utils.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
@@ -21,10 +22,14 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userId =
-          Provider.of<AuthProvider>(context, listen: false).currentUser?.id ?? '';
-      Provider.of<ResidentProvider>(context, listen: false).loadResidentData(userId);
+      _reloadData();
     });
+  }
+
+  void _reloadData() {
+    final userId =
+        Provider.of<AuthProvider>(context, listen: false).currentUser?.id ?? '';
+    Provider.of<ResidentProvider>(context, listen: false).loadResidentData(userId);
   }
 
   @override
@@ -97,54 +102,7 @@ class _MyDataTab extends StatefulWidget {
 class _MyDataTabState extends State<_MyDataTab> {
   final _phoneController = TextEditingController();
   bool _isAddingVehicle = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final resident = Provider.of<ResidentProvider>(context, listen: false).resident;
-    if (resident != null) {
-      _phoneController.text = resident.phone;
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _MyDataTab oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final resident = Provider.of<ResidentProvider>(context, listen: false).resident;
-    if (resident != null && _phoneController.text != resident.phone) {
-      _phoneController.text = resident.phone;
-    }
-  }
-
-  Future<void> _savePhone() async {
-    if (_phoneController.text.isEmpty) {
-      UIUtils.showSnackBar(context, 'El teléfono no puede estar vacío');
-      return;
-    }
-    
-    final confirmed = await _showConfirmDialog('Actualizar teléfono', '¿Desea cambiar su número de teléfono?');
-    if (confirmed != true) return;
-
-    final provider = Provider.of<ResidentProvider>(context, listen: false);
-    final success = await provider.updatePhone(_phoneController.text);
-    if (mounted) {
-      UIUtils.showSnackBar(context, success ? 'Teléfono actualizado' : 'Error al actualizar', isError: !success);
-    }
-  }
-
-  Future<bool?> _showConfirmDialog(String title, String content) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Confirmar')),
-        ],
-      ),
-    );
-  }
+  bool _dataInitialized = false;
 
   @override
   void dispose() {
@@ -152,18 +110,47 @@ class _MyDataTabState extends State<_MyDataTab> {
     super.dispose();
   }
 
+  Future<void> _saveAll() async {
+    if (_phoneController.text.isEmpty) {
+      UIUtils.showSnackBar(context, 'El teléfono no puede estar vacío');
+      return;
+    }
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Guardar cambios'),
+        content: const Text('¿Desea guardar los cambios realizados en sus datos personales?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Confirmar')),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final provider = Provider.of<ResidentProvider>(context, listen: false);
+    
+    bool phoneSuccess = await provider.updatePhone(_phoneController.text.trim());
+
+    if (mounted) {
+      UIUtils.showSnackBar(
+        context, 
+        phoneSuccess ? 'Datos actualizados correctamente' : 'Error al actualizar datos',
+        isError: !phoneSuccess
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<ResidentProvider>(context);
     final resident = provider.resident;
 
-    if (provider.isLoading && resident == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    // Actualizar controlador si los datos cargaron después del init
-    if (resident != null && _phoneController.text.isEmpty && resident.phone.isNotEmpty) {
+    if (resident != null && !_dataInitialized) {
       _phoneController.text = resident.phone;
+      _dataInitialized = true;
     }
 
     return SingleChildScrollView(
@@ -179,10 +166,6 @@ class _MyDataTabState extends State<_MyDataTab> {
             controller: _phoneController,
             keyboardType: TextInputType.phone,
             prefixIcon: const Icon(Icons.phone),
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.save, color: Colors.green),
-              onPressed: _savePhone,
-            ),
           ),
           const SizedBox(height: 32),
           Row(
@@ -194,7 +177,7 @@ class _MyDataTabState extends State<_MyDataTab> {
                 TextButton.icon(
                   onPressed: () => setState(() => _isAddingVehicle = true),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Agregar vehículo', style: TextStyle(fontSize: 13)),
+                  label: const Text('Agregar automóvil', style: TextStyle(fontSize: 13)),
                 ),
             ],
           ),
@@ -217,6 +200,13 @@ class _MyDataTabState extends State<_MyDataTab> {
                 ),
               ),
           ],
+          const SizedBox(height: 32),
+          CustomButton(
+            text: 'Guardar todos los cambios',
+            onPressed: _saveAll,
+            isLoading: provider.isLoading,
+          ),
+          const SizedBox(height: 40),
         ],
       ),
     );
@@ -261,7 +251,11 @@ class _ChangePasswordTabState extends State<_ChangePasswordTab> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.updatePassword(_passwordController.text);
     if (mounted) {
-      UIUtils.showSnackBar(context, success ? 'Contraseña actualizada correctamente' : 'Error al actualizar', isError: !success);
+      UIUtils.showSnackBar(
+        context, 
+        success ? 'Contraseña actualizada correctamente' : 'Error al actualizar', 
+        isError: !success
+      );
       if (success) {
         _passwordController.clear();
         _confirmPasswordController.clear();
@@ -367,7 +361,7 @@ class _VehicleCardState extends State<_VehicleCard> {
               children: [
                 Expanded(
                   child: CustomTextField(
-                    label: 'Año',
+                    label: 'Modelo (Año)',
                     controller: _yearController,
                     enabled: _isEditing,
                     keyboardType: TextInputType.number,
@@ -422,7 +416,7 @@ class _VehicleCardState extends State<_VehicleCard> {
                         if (success) setState(() => _isEditing = false);
                       }
                     },
-                    child: const Text('Guardar'),
+                    child: const Text('Guardar cambios'),
                   ),
                 ],
               ),
@@ -463,13 +457,13 @@ class _AddVehicleFormState extends State<_AddVehicleForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Nuevo Automóvil', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Registrar nuevo automóvil', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           CustomTextField(label: 'Marca', controller: _brandController),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: CustomTextField(label: 'Año', controller: _yearController, keyboardType: TextInputType.number)),
+              Expanded(child: CustomTextField(label: 'Modelo (Año)', controller: _yearController, keyboardType: TextInputType.number)),
               const SizedBox(width: 12),
               Expanded(child: CustomTextField(label: 'Color', controller: _colorController)),
             ],
@@ -496,11 +490,11 @@ class _AddVehicleFormState extends State<_AddVehicleForm> {
                   );
                   final success = await provider.addVehicle(newCar);
                   if (mounted) {
-                    UIUtils.showSnackBar(context, success ? 'Automóvil agregado' : 'Error al guardar', isError: !success);
+                    UIUtils.showSnackBar(context, success ? 'Automóvil registrado con éxito' : 'Error al guardar', isError: !success);
                     if (success) widget.onSaved();
                   }
                 },
-                child: const Text('Guardar'),
+                child: const Text('Guardar Vehículo'),
               ),
             ],
           ),

@@ -8,7 +8,7 @@ class ResidentService {
     try {
       final response = await _supabase
           .from('residents')
-          .select('*, profiles(*), vehicles(*)');
+          .select('*, profiles!residents_profile_id_fkey(*), vehicles(*)');
       
       return (response as List).map((data) {
         final profile = data['profiles'];
@@ -16,7 +16,7 @@ class ResidentService {
           ...data,
           'name': profile['name'],
           'email': profile['email'],
-          'phone': profile['phone'], // El teléfono ahora está en profiles
+          'phone': profile['phone'],
           'photoUrl': profile['photo_url'],
           'vehicles': data['vehicles'],
         });
@@ -31,21 +31,37 @@ class ResidentService {
     try {
       final response = await _supabase
           .from('residents')
-          .select('*, profiles(*), vehicles(*)')
+          .select('*, profiles!residents_profile_id_fkey(*), vehicles(*)')
           .eq('profile_id', userId)
           .maybeSingle();
       
-      if (response == null) return null;
+      if (response != null) {
+        final profile = response['profiles'];
+        return ResidentModel.fromJson({
+          ...response,
+          'name': profile['name'],
+          'email': profile['email'],
+          'phone': profile['phone'],
+          'photoUrl': profile['photo_url'],
+          'vehicles': response['vehicles'],
+        });
+      }
 
-      final profile = response['profiles'];
-      return ResidentModel.fromJson({
-        ...response,
-        'name': profile['name'],
-        'email': profile['email'],
-        'phone': profile['phone'],
-        'photoUrl': profile['photo_url'],
-        'vehicles': response['vehicles'],
-      });
+      final profileResponse = await _supabase
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .single();
+      
+      return ResidentModel(
+        id: '',
+        profileId: userId,
+        name: profileResponse['name'] ?? '',
+        email: profileResponse['email'] ?? '',
+        phone: profileResponse['phone'] ?? '',
+        unitNumber: '',
+        cars: [],
+      );
     } catch (e) {
       print('Error al obtener residente: $e');
       return null;
@@ -62,8 +78,25 @@ class ResidentService {
     }
   }
 
-  Future<bool> addVehicle(String residentId, CarInfo car) async {
+  Future<bool> addVehicle(String profileId, CarInfo car) async {
     try {
+      var residentResponse = await _supabase
+          .from('residents')
+          .select('id')
+          .eq('profile_id', profileId)
+          .maybeSingle();
+      
+      String residentId;
+      if (residentResponse == null) {
+        final newResident = await _supabase.from('residents').insert({
+          'profile_id': profileId,
+          'unit_number': 'S/N'
+        }).select('id').single();
+        residentId = newResident['id'].toString();
+      } else {
+        residentId = residentResponse['id'].toString();
+      }
+
       await _supabase.from('vehicles').insert({
         'resident_id': residentId,
         'brand': car.brand,

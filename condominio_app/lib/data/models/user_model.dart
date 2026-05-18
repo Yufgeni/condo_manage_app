@@ -5,8 +5,6 @@ class UserModel {
   final String lastName;
   final String role;
   final String? photoUrl;
-  final DateTime? birthDate;
-  final int? age;
   final bool isOnDuty;
   final String? phone;
 
@@ -17,8 +15,6 @@ class UserModel {
     required this.lastName,
     required this.role,
     this.photoUrl,
-    this.birthDate,
-    this.age,
     this.isOnDuty = false,
     this.phone,
   });
@@ -31,10 +27,6 @@ class UserModel {
       lastName: json['last_name'] ?? '',
       role: json['role'] ?? '',
       photoUrl: json['photo_url'],
-      birthDate: json['birth_date'] != null 
-          ? DateTime.parse(json['birth_date']) 
-          : null,
-      age: json['age'],
       isOnDuty: json['is_on_duty'] ?? false,
       phone: json['phone'],
     );
@@ -47,8 +39,6 @@ class UserModel {
         'last_name': lastName,
         'role': role,
         'photo_url': photoUrl,
-        'birth_date': birthDate?.toIso8601String(),
-        'age': age,
         'is_on_duty': isOnDuty,
         'phone': phone,
       };

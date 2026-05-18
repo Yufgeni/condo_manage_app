@@ -9,7 +9,7 @@ class AdminProvider extends ChangeNotifier {
   final ImageService _imageService = ImageService();
   final UserService _userService = UserService();
   
-  List<ReportModel> _reports = [];
+  final List<ReportModel> _reports = [];
   List<UserModel> _users = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -37,8 +37,8 @@ class AdminProvider extends ChangeNotifier {
     required String name,
     required String lastName,
     required String role,
-    required DateTime birthDate,
-    required int age,
+    DateTime? birthDate,
+    int? age,
     String? phone,
   }) async {
     _isLoading = true;
@@ -51,8 +51,8 @@ class AdminProvider extends ChangeNotifier {
       name: name,
       lastName: lastName,
       role: role,
-      birthDate: birthDate,
-      age: age,
+      birthDate: birthDate ?? DateTime.now(),
+      age: age ?? 0,
       phone: phone,
     );
 
@@ -93,9 +93,8 @@ class AdminProvider extends ChangeNotifier {
           lastName: _users[index].lastName,
           role: newRole,
           photoUrl: _users[index].photoUrl,
-          birthDate: _users[index].birthDate,
-          age: _users[index].age,
           isOnDuty: _users[index].isOnDuty,
+          phone: _users[index].phone,
         );
       }
     }
@@ -118,8 +117,6 @@ class AdminProvider extends ChangeNotifier {
           lastName: _users[index].lastName,
           role: _users[index].role,
           photoUrl: _users[index].photoUrl,
-          birthDate: _users[index].birthDate,
-          age: _users[index].age,
           isOnDuty: isOnDuty,
           phone: _users[index].phone,
         );

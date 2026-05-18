@@ -144,9 +144,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _ageController = TextEditingController();
   final _phoneController = TextEditingController();
-  DateTime? _birthDate;
   String _selectedRole = AppConstants.roleResident;
 
   @override
@@ -155,7 +153,6 @@ class _NewProfileTabState extends State<_NewProfileTab> {
     _lastNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _ageController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
@@ -165,10 +162,8 @@ class _NewProfileTabState extends State<_NewProfileTab> {
     _lastNameController.clear();
     _emailController.clear();
     _passwordController.clear();
-    _ageController.clear();
     _phoneController.clear();
     setState(() {
-      _birthDate = null;
       _selectedRole = AppConstants.roleResident;
     });
   }
@@ -216,44 +211,6 @@ class _NewProfileTabState extends State<_NewProfileTab> {
               validator: (v) => v?.isEmpty == true ? 'Campo requerido' : null,
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now().subtract(const Duration(days: 365 * 20)),
-                        firstDate: DateTime(1900),
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null) {
-                        setState(() => _birthDate = picked);
-                      }
-                    },
-                    child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Fecha de nacimiento',
-                        border: OutlineInputBorder(),
-                      ),
-                      child: Text(_birthDate == null 
-                        ? 'Seleccionar' 
-                        : '${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}'),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: CustomTextField(
-                    label: 'Edad',
-                    controller: _ageController,
-                    keyboardType: TextInputType.number,
-                    validator: (v) => v?.isEmpty == true ? 'Campo requerido' : null,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _selectedRole,
               decoration: const InputDecoration(
@@ -272,7 +229,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
               text: 'Crear Perfil',
               isLoading: adminProvider.isLoading,
               onPressed: () async {
-                if (!_formKey.currentState!.validate() || _birthDate == null) return;
+                if (!_formKey.currentState!.validate()) return;
                 
                 final confirmed = await showDialog<bool>(
                   context: context,
@@ -294,8 +251,8 @@ class _NewProfileTabState extends State<_NewProfileTab> {
                   name: _nameController.text.trim(),
                   lastName: _lastNameController.text.trim(),
                   role: _selectedRole,
-                  birthDate: _birthDate!,
-                  age: int.parse(_ageController.text),
+                  birthDate: DateTime.now(), 
+                  age: 0, 
                   phone: _phoneController.text.trim(),
                 );
                 if (success && mounted) {
@@ -492,12 +449,12 @@ class _UserCardState extends State<_UserCard> {
         if (context.mounted) {
           UIUtils.showSnackBar(
             context, 
-            passSuccess ? 'Contraseña actualizada' : 'Error al actualizar contraseña (requiere Admin RPC)',
+            passSuccess ? 'Contraseña actualizada' : 'Error al actualizar contraseña',
             isError: !passSuccess
           );
         }
       } else {
-        return; // Stop if pass confirmation fails
+        return; 
       }
     }
 

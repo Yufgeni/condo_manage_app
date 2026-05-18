@@ -21,7 +21,7 @@ class ResidentProvider extends ChangeNotifier {
     notifyListeners();
     
     _resident = await _residentService.getResidentByUserId(userId);
-    if (_resident != null) {
+    if (_resident != null && _resident!.id.isNotEmpty) {
       _payments = await _paymentService.getPaymentsByResident(_resident!.id);
     }
     
@@ -49,9 +49,9 @@ class ResidentProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final success = await _residentService.addVehicle(_resident!.id, car);
+    final success = await _residentService.addVehicle(_resident!.profileId, car);
     if (success) {
-      // Recargar datos para obtener el nuevo ID del vehículo
+      // Recargar datos para obtener el nuevo ID del vehículo y el ID de residente si se creó
       _resident = await _residentService.getResidentByUserId(_resident!.profileId);
     }
 
@@ -95,8 +95,6 @@ class ResidentProvider extends ChangeNotifier {
   Future<void> addResident(ResidentModel resident) async {
     _isLoading = true;
     notifyListeners();
-    // Para compilar, agregamos este stub. 
-    // En una implementación real, esto llamaría a un servicio.
     _allResidents.add(resident);
     _isLoading = false;
     notifyListeners();
