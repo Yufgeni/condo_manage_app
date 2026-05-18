@@ -15,6 +15,8 @@ class AppConstants {
   static const String routeResidentDashboard = '/resident';
   static const String routeGuardDashboard = '/guard';
   static const String routePaymentHistory = '/payment-history';
+  static const String routeResidentPaymentsMenu = '/resident-payments-menu';
+  static const String routeUploadPayment = '/upload-payment';
   static const String routeGuardOnDuty = '/guard-on-duty';
   static const String routeResidentProfile = '/resident-profile';
   static const String routeGuardUpload = '/guard-upload';

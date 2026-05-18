@@ -46,7 +46,7 @@ class ResidentDashboard extends StatelessWidget {
                     icon: Icons.receipt_long,
                     color: Colors.blue,
                     onTap: () => Navigator.pushNamed(
-                        context, AppConstants.routePaymentHistory),
+                        context, AppConstants.routeResidentPaymentsMenu),
                   ),
                   _ResidentCard(
                     title: 'Mis Visitantes',

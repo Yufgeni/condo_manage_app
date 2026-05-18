@@ -12,6 +12,8 @@ import '../screens/admin/income_screen.dart';
 import '../screens/admin/expense_screen.dart';
 import '../screens/resident/visitors_screen.dart';
 import '../screens/resident/add_visitor_screen.dart';
+import '../screens/resident/resident_payments_menu_screen.dart';
+import '../screens/resident/upload_payment_screen.dart';
 import '../screens/common/admin_visitor_list_screen.dart';
 import '../screens/common/resident_visitor_calendar_screen.dart';
 import '../screens/common/view_reports_screen.dart';
@@ -41,7 +43,9 @@ class AppRoutes {
         AppConstants.routeExpense: (_) => const ExpenseScreen(),
         AppConstants.routeAdminReports: (_) => const AdminReportsScreen(),
         AppConstants.routeResidentDashboard: (_) => const ResidentDashboard(),
+        AppConstants.routeResidentPaymentsMenu: (_) => const ResidentPaymentsMenuScreen(),
         AppConstants.routePaymentHistory: (_) => const PaymentHistoryScreen(),
+        AppConstants.routeUploadPayment: (_) => const UploadPaymentScreen(),
         AppConstants.routeVisitors: (_) => const VisitorsScreen(),
         AppConstants.routeAdminVisitors: (_) => const AdminVisitorListScreen(),
         AppConstants.routeViewReports: (_) => const ViewReportsScreen(),
