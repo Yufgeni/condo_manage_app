@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../models/resident_model.dart';
 import '../models/payment_model.dart';
 import '../services/payment_service.dart';
+import '../services/resident_service.dart';
 
 class ResidentProvider extends ChangeNotifier {
+  final ResidentService _residentService = ResidentService();
   final PaymentService _paymentService = PaymentService();
 
   ResidentModel? _resident;
@@ -14,87 +16,89 @@ class ResidentProvider extends ChangeNotifier {
   List<PaymentModel> get payments => _payments;
   bool get isLoading => _isLoading;
 
-  // Mock data for all residents
-  final List<ResidentModel> _mockResidents = [
-    ResidentModel(
-      id: '2',
-      userId: '2',
-      name: 'Juan Pérez',
-      email: 'residente@condominio.com',
-      phone: '5512345678',
-      unitNumber: 'A-101',
-      cars: [
-        CarInfo(
-          brand: 'Toyota',
-          year: '2020',
-          color: 'Blanco',
-          plates: 'ABC-1234',
-        ),
-      ],
-    ),
-    ResidentModel(
-      id: '4',
-      userId: '4',
-      name: 'María García',
-      email: 'maria@condominio.com',
-      phone: '5587654321',
-      unitNumber: 'B-202',
-      cars: [
-        CarInfo(
-          brand: 'Honda',
-          year: '2022',
-          color: 'Gris',
-          plates: 'XYZ-9876',
-        ),
-      ],
-    ),
-  ];
-
-  List<ResidentModel> get allResidents => _mockResidents;
-
-  void addResident(ResidentModel resident) {
-    _mockResidents.add(resident);
-    notifyListeners();
-  }
-
-  // Mock resident data
-  final ResidentModel _mockResident = ResidentModel(
-    id: '2',
-    userId: '2',
-    name: 'Juan Pérez',
-    email: 'residente@condominio.com',
-    phone: '5512345678',
-    unitNumber: 'A-101',
-    cars: [
-      CarInfo(
-        brand: 'Toyota',
-        year: '2020',
-        color: 'Blanco',
-        plates: 'ABC-1234',
-      ),
-    ],
-  );
-
   Future<void> loadResidentData(String userId) async {
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 500));
-    _resident = _mockResident;
-    _payments = await _paymentService.getPaymentsByResident(_mockResident.id);
+    
+    _resident = await _residentService.getResidentByUserId(userId);
+    if (_resident != null) {
+      _payments = await _paymentService.getPaymentsByResident(_resident!.id);
+    }
+    
     _isLoading = false;
     notifyListeners();
   }
 
-  Future<bool> updateProfile({
-    required String phone,
-    required List<CarInfo> cars,
-  }) async {
+  Future<bool> updatePhone(String phone) async {
+    if (_resident == null) return false;
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(seconds: 1));
-    _resident = _resident?.copyWith(phone: phone, cars: cars);
+
+    final success = await _residentService.updateProfilePhone(_resident!.profileId, phone);
+    if (success) {
+      _resident = _resident!.copyWith(phone: phone);
+    }
+
     _isLoading = false;
     notifyListeners();
-    return true;
+    return success;
+  }
+
+  Future<bool> addVehicle(CarInfo car) async {
+    if (_resident == null) return false;
+    _isLoading = true;
+    notifyListeners();
+
+    final success = await _residentService.addVehicle(_resident!.id, car);
+    if (success) {
+      // Recargar datos para obtener el nuevo ID del vehículo
+      _resident = await _residentService.getResidentByUserId(_resident!.profileId);
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> updateVehicle(CarInfo car) async {
+    if (_resident == null) return false;
+    _isLoading = true;
+    notifyListeners();
+
+    final success = await _residentService.updateVehicle(car);
+    if (success) {
+      final index = _resident!.cars.indexWhere((c) => c.id == car.id);
+      if (index != -1) {
+        final newCars = List<CarInfo>.from(_resident!.cars);
+        newCars[index] = car;
+        _resident = _resident!.copyWith(cars: newCars);
+      }
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+  
+  // Listado para el Administrador
+  List<ResidentModel> _allResidents = [];
+  List<ResidentModel> get allResidents => _allResidents;
+
+  Future<void> fetchAllResidents() async {
+    _isLoading = true;
+    notifyListeners();
+    _allResidents = await _residentService.getAllResidents();
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> addResident(ResidentModel resident) async {
+    _isLoading = true;
+    notifyListeners();
+    // Para compilar, agregamos este stub. 
+    // En una implementación real, esto llamaría a un servicio.
+    _allResidents.add(resident);
+    _isLoading = false;
+    notifyListeners();
   }
 }

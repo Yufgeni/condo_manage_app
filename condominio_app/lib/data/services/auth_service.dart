@@ -29,4 +29,16 @@ class AuthService {
   Future<void> logout() async {
     await _supabase.auth.signOut();
   }
+
+  Future<bool> updatePassword(String newPassword) async {
+    try {
+      await _supabase.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+      return true;
+    } catch (e) {
+      print('Error en updatePassword: $e');
+      return false;
+    }
+  }
 }

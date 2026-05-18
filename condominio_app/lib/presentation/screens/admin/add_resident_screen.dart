@@ -39,7 +39,7 @@ class _AddResidentScreenState extends State<AddResidentScreen> {
     if (_formKey.currentState!.validate()) {
       final newResident = ResidentModel(
         id: DateTime.now().toString(),
-        userId: DateTime.now().toString(),
+        profileId: DateTime.now().toString(),
         name: '${nameController.text} ${lastNameController.text}',
         email: '',
         phone: '',

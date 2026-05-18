@@ -32,15 +32,8 @@ class _GuardDashboardState extends State<GuardDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Panel de Vigilancia'),
-        actions: [
-          const PanicButton(),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await authProvider.logout();
-              Navigator.pushReplacementNamed(context, AppConstants.routeLogin);
-            },
-          ),
+        actions: const [
+          PanicButton(),
         ],
       ),
       drawer: const GuardDrawer(),

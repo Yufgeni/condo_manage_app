@@ -84,12 +84,9 @@ class AdminDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.account_circle),
             title: const Text('Perfiles'),
-            onTap: () async {
+            onTap: () {
               Navigator.pop(context);
-              final confirmed = await AdminProfilesScreen.showPasswordDialog(context);
-              if (confirmed == true && context.mounted) {
-                Navigator.pushNamed(context, AppConstants.routeAdminProfiles);
-              }
+              Navigator.pushNamed(context, AppConstants.routeAdminProfiles);
             },
           ),
           const Divider(),

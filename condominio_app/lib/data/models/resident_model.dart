@@ -1,6 +1,6 @@
 class ResidentModel {
   final String id;
-  final String userId;
+  final String profileId;
   final String name;
   final String email;
   final String phone;
@@ -10,7 +10,7 @@ class ResidentModel {
 
   ResidentModel({
     required this.id,
-    required this.userId,
+    required this.profileId,
     required this.name,
     required this.email,
     required this.phone,
@@ -21,25 +21,27 @@ class ResidentModel {
 
   factory ResidentModel.fromJson(Map<String, dynamic> json) {
     return ResidentModel(
-      id: json['id'] ?? '',
-      userId: json['userId'] ?? '',
+      id: json['id']?.toString() ?? '',
+      profileId: json['profile_id']?.toString() ?? '',
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'] ?? '',
-      unitNumber: json['unitNumber'] ?? '',
-      cars: (json['cars'] as List?)?.map((c) => CarInfo.fromJson(c)).toList() ??
-          (json['car'] != null ? [CarInfo.fromJson(json['car'])] : []),
+      unitNumber: json['unit_number'] ?? '',
+      cars: (json['vehicles'] as List?)
+              ?.map((c) => CarInfo.fromJson(c))
+              .toList() ??
+          [],
       photoUrl: json['photoUrl'],
     );
   }
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'userId': userId,
+        'profile_id': profileId,
         'name': name,
         'email': email,
         'phone': phone,
-        'unitNumber': unitNumber,
+        'unit_number': unitNumber,
         'cars': cars.map((c) => c.toJson()).toList(),
         'photoUrl': photoUrl,
       };
@@ -51,7 +53,7 @@ class ResidentModel {
   }) {
     return ResidentModel(
       id: id,
-      userId: userId,
+      profileId: profileId,
       name: name,
       email: email,
       phone: phone ?? this.phone,
@@ -63,12 +65,14 @@ class ResidentModel {
 }
 
 class CarInfo {
+  final String? id;
   final String brand;
   final String year;
   final String color;
   final String plates;
 
   CarInfo({
+    this.id,
     required this.brand,
     required this.year,
     required this.color,
@@ -77,16 +81,18 @@ class CarInfo {
 
   factory CarInfo.fromJson(Map<String, dynamic> json) {
     return CarInfo(
+      id: json['id']?.toString(),
       brand: json['brand'] ?? '',
-      year: json['year'] ?? '',
+      year: json['model_year']?.toString() ?? json['year']?.toString() ?? '',
       color: json['color'] ?? '',
       plates: json['plates'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() => {
+        if (id != null) 'id': id,
         'brand': brand,
-        'year': year,
+        'model_year': year,
         'color': color,
         'plates': plates,
       };

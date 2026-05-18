@@ -40,4 +40,13 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = null;
     notifyListeners();
   }
+
+  Future<bool> updatePassword(String newPassword) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _authService.updatePassword(newPassword);
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
 }

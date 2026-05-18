@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../widgets/common/panic_button.dart';
+import '../../widgets/resident/resident_drawer.dart';
 
 class ResidentDashboard extends StatelessWidget {
   const ResidentDashboard({Key? key}) : super(key: key);
@@ -14,17 +15,11 @@ class ResidentDashboard extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Resident Dashboard'),
-        actions: [
-          const PanicButton(),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await authProvider.logout();
-              Navigator.pushReplacementNamed(context, AppConstants.routeLogin);
-            },
-          ),
+        actions: const [
+          PanicButton(),
         ],
       ),
+      drawer: const ResidentDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

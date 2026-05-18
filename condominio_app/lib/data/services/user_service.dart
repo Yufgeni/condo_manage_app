@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
@@ -15,6 +16,20 @@ class UserService {
     } catch (e) {
       print('Error getting users: $e');
       return [];
+    }
+  }
+
+  Future<UserModel?> getUserById(String userId) async {
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .single();
+      return UserModel.fromJson(response);
+    } catch (e) {
+      print('Error getting user by id: $e');
+      return null;
     }
   }
 
@@ -37,29 +52,8 @@ class UserService {
     }
   }
 
-  Future<UserModel?> getUserById(String userId) async {
-    try {
-      final response = await _supabase
-          .from('profiles')
-          .select()
-          .eq('id', userId)
-          .single();
-
-      return UserModel.fromJson(response);
-    } catch (e) {
-      print('Error getting user by id: $e');
-      return null;
-    }
-  }
-
   Future<bool> deleteUser(String userId) async {
     try {
-      // Deleting from auth.users requires service_role or a custom function.
-      // For now, we delete from profiles (cascade might handle auth if configured, 
-      // but usually auth deletion is separate). 
-      // Given we are using RPC or Supabase Admin is not easy from client, 
-      // we might just delete the profile or use a dedicated edge function.
-      // However, for this exercise, we'll try deleting from profiles.
       await _supabase.from('profiles').delete().eq('id', userId);
       return true;
     } catch (e) {
@@ -90,13 +84,38 @@ class UserService {
 
   Future<bool> verifyPassword(String password) async {
     try {
-      final email = _supabase.auth.currentUser?.email;
-      if (email == null) return false;
-      
-      // Verify by attempting to sign in (not ideal but works for validation)
-      await _supabase.auth.signInWithPassword(email: email, password: password);
+      final response = await _supabase.rpc(
+        'verify_user_password',
+        params: {'password_to_check': password},
+      );
+      return response as bool;
+    } catch (e) {
+      debugPrint('Error verificando contraseña vía RPC: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updatePassword(String newPassword) async {
+    try {
+      await _supabase.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
       return true;
     } catch (e) {
+      debugPrint('Error updating password: $e');
+      return false;
+    }
+  }
+
+  Future<bool> adminUpdateUserPassword(String userId, String newPassword) async {
+    try {
+      await _supabase.rpc('admin_change_password', params: {
+        'target_user_id': userId,
+        'new_password': newPassword,
+      });
+      return true;
+    } catch (e) {
+      debugPrint('Error admin updating password: $e');
       return false;
     }
   }

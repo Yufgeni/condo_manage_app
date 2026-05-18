@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/ui_utils.dart';
 import '../../../data/providers/admin_provider.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/models/user_model.dart';
@@ -44,9 +45,9 @@ class AdminProfilesScreen extends StatefulWidget {
               if (valid) {
                 Navigator.pop(context, true);
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Contraseña incorrecta')),
-                );
+                if (context.mounted) {
+                  UIUtils.showSnackBar(context, 'Contraseña incorrecta');
+                }
               }
             },
             child: const Text('Confirmar'),
@@ -272,21 +273,36 @@ class _NewProfileTabState extends State<_NewProfileTab> {
               isLoading: adminProvider.isLoading,
               onPressed: () async {
                 if (!_formKey.currentState!.validate() || _birthDate == null) return;
+                
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Confirmar creación'),
+                    content: const Text('¿Desea crear este nuevo perfil?'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+                      TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Confirmar')),
+                    ],
+                  ),
+                );
+                
+                if (confirmed != true) return;
+
                 final success = await adminProvider.createProfile(
-                  email: _emailController.text,
+                  email: _emailController.text.trim(),
                   password: _passwordController.text,
-                  name: _nameController.text,
-                  lastName: _lastNameController.text,
+                  name: _nameController.text.trim(),
+                  lastName: _lastNameController.text.trim(),
                   role: _selectedRole,
                   birthDate: _birthDate!,
                   age: int.parse(_ageController.text),
-                  phone: _phoneController.text,
+                  phone: _phoneController.text.trim(),
                 );
                 if (success && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Perfil creado exitosamente')),
-                  );
+                  UIUtils.showSnackBar(context, 'Perfil creado exitosamente', isError: false);
                   _clearForm();
+                } else if (mounted) {
+                  UIUtils.showSnackBar(context, adminProvider.errorMessage ?? 'Error al crear el perfil');
                 }
               },
             ),
@@ -331,11 +347,19 @@ class _UserCardState extends State<_UserCard> {
   bool _isEditing = false;
   bool _isAdminCheck = false;
   bool _isOnDutyCheck = false;
+  final _newPasswordController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _isOnDutyCheck = widget.user.isOnDuty;
+    _isAdminCheck = widget.user.role == AppConstants.roleAdmin;
+  }
+
+  @override
+  void dispose() {
+    _newPasswordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -390,12 +414,10 @@ class _UserCardState extends State<_UserCard> {
                 ),
                 Row(
                   children: [
-                    if (widget.user.role == AppConstants.roleResident || 
-                        widget.user.role == AppConstants.roleGuard)
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => setState(() => _isEditing = !_isEditing),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () => setState(() => _isEditing = !_isEditing),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => _confirmDelete(context, adminProvider),
@@ -419,6 +441,14 @@ class _UserCardState extends State<_UserCard> {
                   value: _isOnDutyCheck,
                   onChanged: (v) => setState(() => _isOnDutyCheck = v!),
                 ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                label: 'Actualizar Contraseña',
+                controller: _newPasswordController,
+                obscureText: true,
+                hint: 'Dejar vacío para no cambiar',
+              ),
+              const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -440,19 +470,39 @@ class _UserCardState extends State<_UserCard> {
   }
 
   Future<void> _handleSave(BuildContext context, AdminProvider adminProvider) async {
-    if (widget.user.role == AppConstants.roleGuard) {
-      await adminProvider.updateDutyStatus(widget.user.id, _isOnDutyCheck);
-      setState(() => _isEditing = false);
-      return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar cambios'),
+        content: const Text('¿Desea guardar los cambios en este perfil?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Confirmar')),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    // Password Update Logic
+    if (_newPasswordController.text.isNotEmpty) {
+      final passConfirmed = await AdminProfilesScreen.showPasswordDialog(context);
+      if (passConfirmed == true) {
+        final passSuccess = await adminProvider.adminUpdatePassword(widget.user.id, _newPasswordController.text);
+        if (context.mounted) {
+          UIUtils.showSnackBar(
+            context, 
+            passSuccess ? 'Contraseña actualizada' : 'Error al actualizar contraseña (requiere Admin RPC)',
+            isError: !passSuccess
+          );
+        }
+      } else {
+        return; // Stop if pass confirmation fails
+      }
     }
 
-    if (!_isAdminCheck) {
-      setState(() => _isEditing = false);
-      return;
-    }
-
-    final confirmed = await _showConfirmationDialog(context);
-    if (confirmed == true) {
+    // Role Update Logic (Resident -> Admin)
+    if (widget.user.role == AppConstants.roleResident && _isAdminCheck) {
       final passConfirmed = await AdminProfilesScreen.showPasswordDialog(context);
       if (passConfirmed == true) {
         await adminProvider.updateUserRole(widget.user.id, AppConstants.roleAdmin);
@@ -465,23 +515,22 @@ class _UserCardState extends State<_UserCard> {
         await authProvider.logout();
         if (context.mounted) {
           Navigator.pushNamedAndRemoveUntil(context, AppConstants.routeLogin, (route) => false);
+          return;
         }
+      } else {
+        return;
       }
     }
-  }
 
-  Future<bool?> _showConfirmationDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar cambio'),
-        content: const Text('¿Está seguro de que desea asignar el perfil de administrador?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sí')),
-        ],
-      ),
-    );
+    // Duty Status Logic (Guard)
+    if (widget.user.role == AppConstants.roleGuard) {
+      await adminProvider.updateDutyStatus(widget.user.id, _isOnDutyCheck);
+    }
+
+    setState(() => _isEditing = false);
+    if (context.mounted) {
+      UIUtils.showSnackBar(context, 'Perfil actualizado exitosamente', isError: false);
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, AdminProvider adminProvider) async {
@@ -493,7 +542,9 @@ class _UserCardState extends State<_UserCard> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () async {
+              Navigator.pop(context, true);
+            },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),
         ],
@@ -501,7 +552,10 @@ class _UserCardState extends State<_UserCard> {
     );
 
     if (confirmed == true) {
-      await adminProvider.deleteUser(widget.user.id);
+      final success = await adminProvider.deleteUser(widget.user.id);
+      if (success && context.mounted) {
+        UIUtils.showSnackBar(context, 'Perfil eliminado', isError: false);
+      }
     }
   }
 }

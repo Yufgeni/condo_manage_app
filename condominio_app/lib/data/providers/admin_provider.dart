@@ -121,9 +121,19 @@ class AdminProvider extends ChangeNotifier {
           birthDate: _users[index].birthDate,
           age: _users[index].age,
           isOnDuty: isOnDuty,
+          phone: _users[index].phone,
         );
       }
     }
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> adminUpdatePassword(String userId, String newPassword) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _userService.adminUpdateUserPassword(userId, newPassword);
     _isLoading = false;
     notifyListeners();
     return success;

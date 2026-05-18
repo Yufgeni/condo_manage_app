@@ -82,12 +82,8 @@ class AdminDashboard extends StatelessWidget {
                     title: 'Perfiles',
                     icon: Icons.account_circle,
                     color: Colors.indigo,
-                    onTap: () async {
-                      final confirmed = await AdminProfilesScreen.showPasswordDialog(context);
-                      if (confirmed == true && context.mounted) {
-                        Navigator.pushNamed(context, AppConstants.routeAdminProfiles);
-                      }
-                    },
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeAdminProfiles),
                   ),
                 ],
               ),
