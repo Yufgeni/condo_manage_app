@@ -7,6 +7,9 @@ import '../screens/admin/guards_screen.dart';
 import '../screens/admin/maintenance_screen.dart';
 import '../screens/admin/add_resident_screen.dart';
 import '../screens/admin/add_maintenance_screen.dart';
+import '../screens/admin/finance_screen.dart';
+import '../screens/admin/income_screen.dart';
+import '../screens/admin/expense_screen.dart';
 import '../screens/resident/visitors_screen.dart';
 import '../screens/resident/add_visitor_screen.dart';
 import '../screens/common/admin_visitor_list_screen.dart';
@@ -33,6 +36,9 @@ class AppRoutes {
         AppConstants.routeMaintenance: (_) => const MaintenanceScreen(),
         AppConstants.routeAddResident: (_) => const AddResidentScreen(),
         AppConstants.routeAddMaintenance: (_) => const AddMaintenanceScreen(),
+        AppConstants.routeFinance: (_) => const FinanceScreen(),
+        AppConstants.routeIncome: (_) => const IncomeScreen(),
+        AppConstants.routeExpense: (_) => const ExpenseScreen(),
         AppConstants.routeAdminReports: (_) => const AdminReportsScreen(),
         AppConstants.routeResidentDashboard: (_) => const ResidentDashboard(),
         AppConstants.routePaymentHistory: (_) => const PaymentHistoryScreen(),

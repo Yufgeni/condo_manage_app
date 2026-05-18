@@ -9,6 +9,7 @@ import 'data/providers/guard_provider.dart';
 import 'data/providers/admin_provider.dart';
 import 'data/providers/maintenance_provider.dart';
 import 'data/providers/visitor_provider.dart';
+import 'data/providers/finance_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => AdminProvider()),
         ChangeNotifierProvider(create: (_) => MaintenanceProvider()),
         ChangeNotifierProvider(create: (_) => VisitorProvider()),
+        ChangeNotifierProvider(create: (_) => FinanceProvider()),
       ],
       child: const MyApp(),
     ),

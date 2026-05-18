@@ -23,6 +23,9 @@ class AppConstants {
   static const String routeMaintenance = '/maintenance';
   static const String routeAddResident = '/add-resident';
   static const String routeAddMaintenance = '/add-maintenance';
+  static const String routeFinance = '/finance';
+  static const String routeIncome = '/income';
+  static const String routeExpense = '/expense';
   static const String routeVisitors = '/visitors';
   static const String routeAdminVisitors = '/admin-visitors';
   static const String routeViewReports = '/view-reports';

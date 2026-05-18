@@ -51,11 +51,11 @@ class AdminDashboard extends StatelessWidget {
                         context, AppConstants.routeGuards),
                   ),
                   _DashboardCard(
-                    title: 'Mantenimiento',
-                    icon: Icons.build,
+                    title: 'Finanzas',
+                    icon: Icons.payments,
                     color: Colors.orange,
                     onTap: () => Navigator.pushNamed(
-                        context, AppConstants.routeMaintenance),
+                        context, AppConstants.routeFinance),
                   ),
                   _DashboardCard(
                     title: 'Ver Visitas',
