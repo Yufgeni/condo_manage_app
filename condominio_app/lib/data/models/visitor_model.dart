@@ -19,23 +19,24 @@ class VisitorModel {
 
   factory VisitorModel.fromJson(Map<String, dynamic> json) {
     return VisitorModel(
-      id: json['id'] ?? '',
-      residentId: json['residentId'] ?? '',
+      id: json['id']?.toString() ?? '',
+      residentId: (json['resident_id'] ?? json['residentId'] ?? '').toString(),
       name: json['name'] ?? '',
-      carBrand: json['carBrand'] ?? '',
-      carColor: json['carColor'] ?? '',
-      carPlates: json['carPlates'] ?? '',
-      date: DateTime.parse(json['date'] ?? DateTime.now().toIso8601String()),
+      carBrand: (json['car_brand'] ?? json['carBrand'] ?? '').toString(),
+      carColor: (json['car_color'] ?? json['carColor'] ?? '').toString(),
+      carPlates: (json['car_plates'] ?? json['carPlates'] ?? '').toString(),
+      date: json['date'] != null 
+          ? DateTime.parse(json['date']) 
+          : (json['entry_at'] != null ? DateTime.parse(json['entry_at']) : DateTime.now()),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'residentId': residentId,
+        'resident_id': residentId,
         'name': name,
-        'carBrand': carBrand,
-        'carColor': carColor,
-        'carPlates': carPlates,
-        'date': date.toIso8601String(),
+        'car_brand': carBrand,
+        'car_color': carColor,
+        'car_plates': carPlates,
+        'entry_at': date.toIso8601String(),
       };
 }

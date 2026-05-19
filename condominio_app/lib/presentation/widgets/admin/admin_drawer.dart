@@ -46,22 +46,22 @@ class AdminDrawer extends StatelessWidget {
                 context, AppConstants.routeAdminDashboard),
           ),
           ListTile(
-            leading: const Icon(Icons.people),
+            leading: const Icon(Icons.people, color: Colors.blue),
             title: const Text('Residentes'),
             onTap: () => Navigator.pushNamed(context, AppConstants.routeResidents),
           ),
           ListTile(
-            leading: const Icon(Icons.security),
+            leading: const Icon(Icons.security, color: Colors.green),
             title: const Text('Vigilantes'),
             onTap: () => Navigator.pushNamed(context, AppConstants.routeGuards),
           ),
           ListTile(
-            leading: const Icon(Icons.payments),
+            leading: const Icon(Icons.payments, color: Colors.orange),
             title: const Text('Finanzas'),
             onTap: () => Navigator.pushNamed(context, AppConstants.routeFinance),
           ),
           ListTile(
-            leading: const Icon(Icons.group_add_outlined),
+            leading: const Icon(Icons.group_add_outlined, color: Colors.redAccent),
             title: const Text('Ver visitantes'),
             onTap: () {
               Navigator.pop(context);
@@ -69,7 +69,7 @@ class AdminDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.assignment_outlined),
+            leading: const Icon(Icons.assignment_outlined, color: Colors.teal),
             title: const Text('Visualizar Reportes'),
             onTap: () {
               Navigator.pop(context);
@@ -77,16 +77,24 @@ class AdminDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.bar_chart),
+            leading: const Icon(Icons.bar_chart, color: Colors.purple),
             title: const Text('Reportes'),
             onTap: () => Navigator.pushNamed(context, AppConstants.routeAdminReports),
           ),
           ListTile(
-            leading: const Icon(Icons.account_circle),
+            leading: const Icon(Icons.account_circle, color: Colors.indigo),
             title: const Text('Perfiles'),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppConstants.routeAdminProfiles);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.group_add, color: Colors.teal),
+            title: const Text('Mis Visitas'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeVisitors);
             },
           ),
           const Divider(),

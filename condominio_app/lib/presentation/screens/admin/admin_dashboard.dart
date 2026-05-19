@@ -85,6 +85,13 @@ class AdminDashboard extends StatelessWidget {
                     onTap: () => Navigator.pushNamed(
                         context, AppConstants.routeAdminProfiles),
                   ),
+                  _DashboardCard(
+                    title: 'Mis Visitas',
+                    icon: Icons.group_add,
+                    color: Colors.teal,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeVisitors),
+                  ),
                 ],
               ),
             ),

@@ -1,52 +1,106 @@
 import 'package:flutter/material.dart';
 import '../models/visitor_model.dart';
+import '../models/resident_model.dart';
+import '../services/visitor_service.dart';
+import '../services/resident_service.dart';
 
 class VisitorProvider extends ChangeNotifier {
-  final List<VisitorModel> _visitors = [
-    VisitorModel(
-      id: '1',
-      residentId: '2',
-      name: 'Pedro Picapiedra',
-      carBrand: 'Troncomovil',
-      carColor: 'Madera',
-      carPlates: 'P-001',
-      date: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-    VisitorModel(
-      id: '2',
-      residentId: '2',
-      name: 'Pablo Marmol',
-      carBrand: 'Honda',
-      carColor: 'Gris',
-      carPlates: 'XYZ-789',
-      date: DateTime.now(),
-    ),
-  ];
+  final VisitorService _visitorService = VisitorService();
+  final ResidentService _residentService = ResidentService();
+  
+  List<VisitorModel> _visitors = [];
+  bool _isLoading = false;
 
   List<VisitorModel> get visitors => _visitors;
+  bool get isLoading => _isLoading;
 
-  List<VisitorModel> get todayVisitors {
-    final now = DateTime.now();
-    return _visitors.where((v) => 
-      v.date.year == now.year && 
-      v.date.month == now.month && 
-      v.date.day == now.day
-    ).toList();
-  }
-
-  List<VisitorModel> get pastVisitors {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return _visitors.where((v) => v.date.isBefore(today)).toList();
-  }
-
-  void addVisitor(VisitorModel visitor) {
-    _visitors.insert(0, visitor);
+  Future<void> loadAllVisitorsByResident(String profileId) async {
+    _isLoading = true;
+    notifyListeners();
+    
+    final resident = await _residentService.getResidentByUserId(profileId);
+    
+    if (resident != null && resident.id.isNotEmpty) {
+      _visitors = await _visitorService.getAllVisitorsByResident(resident.id);
+    } else {
+      _visitors = [];
+    }
+    
+    _isLoading = false;
     notifyListeners();
   }
 
-  void removeVisitor(String id) {
-    _visitors.removeWhere((v) => v.id == id);
+  Future<void> loadVisitorsByDay(String profileId, DateTime date) async {
+    _isLoading = true;
     notifyListeners();
+    
+    final resident = await _residentService.getResidentByUserId(profileId);
+    
+    if (resident != null && resident.id.isNotEmpty) {
+      _visitors = await _visitorService.getVisitorsByResidentAndDate(resident.id, date);
+    } else {
+      _visitors = [];
+    }
+    
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> addVisitor(VisitorModel visitor, String profileId) async {
+    _isLoading = true;
+    notifyListeners();
+    
+    String finalResidentId = visitor.residentId;
+
+    // Si el resident_id está vacío (como en el caso del Admin la primera vez)
+    // Usamos el servicio de residentes que ya tiene la lógica de "crear si no existe"
+    if (finalResidentId.isEmpty) {
+      // Intentamos registrar un vehículo dummy o simplemente forzar la creación del resident
+      // Usaremos la lógica de addVehicle que ya maneja la creación de la ficha de residente
+      final success = await _residentService.addVehicle(profileId, CarInfo(brand: 'PROPIO', year: '', color: '', plates: 'INTERNO'));
+      
+      if (success) {
+        final resident = await _residentService.getResidentByUserId(profileId);
+        if (resident != null) finalResidentId = resident.id;
+      }
+    }
+
+    if (finalResidentId.isEmpty) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+
+    final success = await _visitorService.addVisitor(VisitorModel(
+      id: visitor.id,
+      residentId: finalResidentId,
+      name: visitor.name,
+      carBrand: visitor.carBrand,
+      carColor: visitor.carColor,
+      carPlates: visitor.carPlates,
+      date: visitor.date,
+    ));
+
+    if (success) {
+      _visitors = await _visitorService.getAllVisitorsByResident(finalResidentId);
+    }
+    
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> removeVisitor(String visitorId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final success = await _visitorService.deleteVisitor(visitorId);
+    if (success) {
+      _visitors.removeWhere((v) => v.id == visitorId);
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return success;
   }
 }

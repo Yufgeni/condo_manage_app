@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../../data/models/visitor_model.dart';
 import '../../../data/providers/visitor_provider.dart';
 import '../../../data/providers/auth_provider.dart';
+import '../../../data/providers/resident_provider.dart';
+import '../../../core/utils/ui_utils.dart';
 import '../../widgets/common/custom_text_field.dart';
 import '../../widgets/common/custom_button.dart';
 
@@ -19,6 +22,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
   final carBrandController = TextEditingController();
   final carColorController = TextEditingController();
   final carPlatesController = TextEditingController();
+  DateTime? _selectedDate;
 
   @override
   void dispose() {
@@ -29,29 +33,73 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
     super.dispose();
   }
 
-  void _save() {
-    if (_formKey.currentState!.validate()) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final newVisitor = VisitorModel(
-        id: DateTime.now().toString(),
-        residentId: authProvider.currentUser?.id ?? '',
-        name: nameController.text,
-        carBrand: carBrandController.text,
-        carColor: carColorController.text,
-        carPlates: carPlatesController.text,
-        date: DateTime.now(),
-      );
-      Provider.of<VisitorProvider>(context, listen: false).addVisitor(newVisitor);
-      Navigator.pop(context);
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      locale: const Locale('es', 'ES'),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    if (_selectedDate == null) {
+      UIUtils.showSnackBar(context, 'Por favor seleccione una fecha para la visita');
+      return;
+    }
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final residentProvider = Provider.of<ResidentProvider>(context, listen: false);
+    final visitorProvider = Provider.of<VisitorProvider>(context, listen: false);
+
+    // Si la información de residente no está cargada, intentamos cargarla ahora
+    if (residentProvider.resident == null) {
+      await residentProvider.loadResidentData(authProvider.currentUser?.id ?? '');
+    }
+
+    final residentId = residentProvider.resident?.id;
+    final profileId = authProvider.currentUser?.id;
+
+    if (profileId == null) return;
+
+    final newVisitor = VisitorModel(
+      id: '', 
+      residentId: residentId ?? '', // El provider se encargará de resolverlo si está vacío
+      name: nameController.text.trim(),
+      carBrand: carBrandController.text.trim(),
+      carColor: carColorController.text.trim(),
+      carPlates: carPlatesController.text.trim(),
+      date: _selectedDate!,
+    );
+
+    final success = await visitorProvider.addVisitor(newVisitor, profileId);
+
+    if (mounted) {
+      if (success) {
+        UIUtils.showSnackBar(context, 'Visita agendada correctamente', isError: false);
+        Navigator.pop(context);
+      } else {
+        UIUtils.showSnackBar(context, 'Error al agendar la visita. Verifique su conexión.');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final visitorProvider = Provider.of<VisitorProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Registrar Visitante'),
+        title: const Text('Agendar Visitante'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -63,13 +111,28 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
             children: [
               const Text(
                 'Datos del Visitante',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
               CustomTextField(
                 label: 'Nombre completo',
                 controller: nameController,
                 prefixIcon: const Icon(Icons.person_outline),
+                validator: (v) => v?.isEmpty == true ? 'Nombre requerido' : null,
+              ),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () => _selectDate(context),
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Fecha de visita',
+                    prefixIcon: Icon(Icons.calendar_today),
+                    border: OutlineInputBorder(),
+                  ),
+                  child: Text(_selectedDate == null 
+                    ? 'Seleccionar fecha' 
+                    : DateFormat('dd/MM/yyyy').format(_selectedDate!)),
+                ),
               ),
               const SizedBox(height: 12),
               CustomTextField(
@@ -91,8 +154,9 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
               ),
               const SizedBox(height: 40),
               CustomButton(
-                text: 'Registrar Visita',
+                text: 'Agendar Visita',
                 onPressed: _save,
+                isLoading: visitorProvider.isLoading,
               ),
             ],
           ),

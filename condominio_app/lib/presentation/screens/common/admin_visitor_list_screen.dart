@@ -1,55 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../data/providers/resident_provider.dart';
+import '../../../data/providers/admin_provider.dart';
 
-class AdminVisitorListScreen extends StatelessWidget {
+class AdminVisitorListScreen extends StatefulWidget {
   const AdminVisitorListScreen({Key? key}) : super(key: key);
 
   @override
+  State<AdminVisitorListScreen> createState() => _AdminVisitorListScreenState();
+}
+
+class _AdminVisitorListScreenState extends State<AdminVisitorListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() =>
+        Provider.of<AdminProvider>(context, listen: false).fetchUsers());
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final residentProvider = Provider.of<ResidentProvider>(context);
-    final residents = residentProvider.allResidents;
+    final adminProvider = Provider.of<AdminProvider>(context);
+    
+    // Filtramos para obtener Residentes y Administradores para el listado de visitas
+    final users = adminProvider.users
+        .where((u) => u.role == AppConstants.roleResident || u.role == AppConstants.roleAdmin)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ver Visitantes'),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: residents.length,
-        itemBuilder: (context, index) {
-          final resident = residents[index];
-          // Asumiendo que el nombre completo está en resident.name o similar.
-          // Si el modelo tiene firstName y lastName, usarlos. 
-          // Ajustaré basándome en el modelo ResidentModel.
-          return Card(
-            elevation: 2,
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              leading: const CircleAvatar(
-                backgroundColor: Colors.blueAccent,
-                child: Icon(Icons.person, color: Colors.white),
-              ),
-              title: Text(
-                'Residente: ${resident.name}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              subtitle: Text('ID: ${resident.id}'),
-              trailing: const Icon(Icons.calendar_month, color: Colors.blue),
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  AppConstants.routeResidentVisitorCalendar,
-                  arguments: resident.id,
-                );
-              },
-            ),
-          );
-        },
-      ),
+      body: adminProvider.isLoading && users.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : users.isEmpty
+              ? const Center(child: Text('No hay residentes registrados'))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    return Card(
+                      elevation: 2,
+                      margin: const EdgeInsets.only(bottom: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppConstants.routeResidentVisitorCalendar,
+                            arguments: user.id,
+                          );
+                        },
+                        leading: CircleAvatar(
+                          radius: 20,
+                          backgroundColor: user.role == AppConstants.roleAdmin ? Colors.blue.shade100 : Colors.green.shade100,
+                          backgroundImage: user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
+                          child: user.photoUrl == null 
+                            ? Icon(user.role == AppConstants.roleAdmin ? Icons.admin_panel_settings : Icons.person, size: 20) 
+                            : null,
+                        ),
+                        title: Text(
+                          user.fullName,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        trailing: const Icon(Icons.calendar_month, color: Colors.blueGrey),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

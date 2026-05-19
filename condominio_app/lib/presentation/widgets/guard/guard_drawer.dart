@@ -45,7 +45,7 @@ class GuardDrawer extends StatelessWidget {
                 context, AppConstants.routeGuardDashboard),
           ),
           ListTile(
-            leading: const Icon(Icons.upload_file),
+            leading: const Icon(Icons.upload_file, color: Colors.blue),
             title: const Text('Subir Reporte'),
             onTap: () {
               Navigator.pop(context);
@@ -53,7 +53,7 @@ class GuardDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.people_alt),
+            leading: const Icon(Icons.people_alt, color: Colors.blueGrey),
             title: const Text('Ver Residentes'),
             onTap: () {
               Navigator.pop(context);
@@ -61,7 +61,7 @@ class GuardDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.group_add_outlined),
+            leading: const Icon(Icons.group_add_outlined, color: Colors.orange),
             title: const Text('Ver Visitantes'),
             onTap: () {
               Navigator.pop(context);
@@ -69,7 +69,7 @@ class GuardDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.assignment_outlined),
+            leading: const Icon(Icons.assignment_outlined, color: Colors.teal),
             title: const Text('Visualizar Reportes'),
             onTap: () {
               Navigator.pop(context);
