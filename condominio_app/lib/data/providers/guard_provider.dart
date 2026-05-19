@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../models/user_model.dart';
-import '../services/image_service.dart';
+import '../models/report_model.dart';
 import '../services/user_service.dart';
+import '../services/report_service.dart';
 
 class GuardProvider extends ChangeNotifier {
-  final ImageService _imageService = ImageService();
   final UserService _userService = UserService();
+  final ReportService _reportService = ReportService();
 
   UserModel? _guard;
   UserModel? _guardOnDuty;
-  List<Map<String, dynamic>> _uploads = [];
+  final List<ReportModel> _myReports = [];
   bool _isLoading = false;
 
   UserModel? get guard => _guard;
   UserModel? get guardOnDuty => _guardOnDuty;
-  List<Map<String, dynamic>> get uploads => _uploads;
+  List<ReportModel> get myReports => _myReports;
   bool get isLoading => _isLoading;
 
   Future<void> loadGuardData(String userId) async {
@@ -34,22 +35,40 @@ class GuardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> uploadImageWithText(File image, String text) async {
+  Future<void> fetchMyReports(String authorId) async {
     _isLoading = true;
     notifyListeners();
-    final url = await _imageService.uploadImage(image);
-    if (url != null) {
-      _uploads.add({
-        'imageUrl': url,
-        'text': text,
-        'date': DateTime.now().toIso8601String(),
-      });
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    }
+    final reports = await _reportService.getReportsByAuthor(authorId);
+    _myReports.clear();
+    _myReports.addAll(reports);
     _isLoading = false;
     notifyListeners();
-    return false;
+  }
+
+  Future<bool> uploadReport({
+    required File image,
+    required String title,
+    required String description,
+    required String authorId,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final newReport = ReportModel(
+      id: '',
+      title: title,
+      description: description,
+      createdAt: DateTime.now(),
+      createdBy: authorId,
+    );
+
+    final success = await _reportService.createReport(newReport, image);
+    if (success) {
+      await fetchMyReports(authorId);
+    }
+    
+    _isLoading = false;
+    notifyListeners();
+    return success;
   }
 }

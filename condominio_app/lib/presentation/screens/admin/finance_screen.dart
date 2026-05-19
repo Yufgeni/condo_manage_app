@@ -31,7 +31,7 @@ class FinanceScreen extends StatelessWidget {
                     subtitle: 'Registro de pagos de residentes',
                     icon: Icons.add_chart,
                     color: Colors.green,
-                    onTap: () => Navigator.pushNamed(context, AppConstants.routeIncome),
+                    onTap: () => _showIngresosMenu(context),
                   ),
                   _FinanceCard(
                     title: 'Egresos',
@@ -47,6 +47,107 @@ class FinanceScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showIngresosMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Opciones de Ingresos',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            ListTile(
+              leading: const Icon(Icons.edit_note, color: Colors.green),
+              title: const Text('Registrar pago manual'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, AppConstants.routeIncome);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.fact_check_outlined, color: Colors.blue),
+              title: const Text('Aprobar pagos'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ApprovePaymentsScreen()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ApprovePaymentsScreen extends StatelessWidget {
+  const ApprovePaymentsScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Aprobar Pagos')),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _getPendingPayments(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No hay pagos pendientes por aprobar'));
+          }
+
+          final payments = snapshot.data!;
+          return ListView.builder(
+            itemCount: payments.length,
+            padding: const EdgeInsets.all(12),
+            itemBuilder: (context, index) {
+              final payment = payments[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.blueAccent,
+                    child: Icon(Icons.payment, color: Colors.white),
+                  ),
+                  title: Text(payment['resident_name']),
+                  subtitle: Text('${payment['concept']} - \$${payment['amount']}'),
+                  trailing: ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Pago aprobado exitosamente')),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    child: const Text('Aprobar', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _getPendingPayments() async {
+    await Future.delayed(const Duration(seconds: 1));
+    return [
+      {'id': '1', 'resident_name': 'Juan Pérez', 'amount': 1500, 'concept': 'Mantenimiento Mayo', 'status': 'pending'},
+      {'id': '2', 'resident_name': 'María García', 'amount': 1500, 'concept': 'Mantenimiento Mayo', 'status': 'pending'},
+      {'id': '3', 'resident_name': 'Carlos Ruiz', 'amount': 1500, 'concept': 'Mantenimiento Mayo', 'status': 'pending'},
+    ];
   }
 }
 
@@ -79,7 +180,7 @@ class _FinanceCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 35,
-                backgroundColor: color.withOpacity(0.1),
+                backgroundColor: color.withValues(alpha: 0.1),
                 child: Icon(icon, size: 40, color: color),
               ),
               const SizedBox(width: 20),

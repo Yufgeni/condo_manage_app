@@ -4,7 +4,6 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../widgets/admin/admin_drawer.dart';
 import '../../widgets/common/panic_button.dart';
-import 'admin_profiles_screen.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -65,7 +64,7 @@ class AdminDashboard extends StatelessWidget {
                         context, AppConstants.routeAdminVisitors),
                   ),
                   _DashboardCard(
-                    title: 'Visualizar Reportes',
+                    title: 'Reportes Financieros',
                     icon: Icons.assignment_outlined,
                     color: Colors.teal,
                     onTap: () => Navigator.pushNamed(
@@ -126,7 +125,7 @@ class _DashboardCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundColor: color.withOpacity(0.15),
+              backgroundColor: color.withValues(alpha: 0.15),
               child: Icon(icon, size: 32, color: color),
             ),
             const SizedBox(height: 12),

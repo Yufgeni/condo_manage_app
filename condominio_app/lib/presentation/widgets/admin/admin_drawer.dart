@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
-import '../../screens/admin/admin_profiles_screen.dart';
 
 class AdminDrawer extends StatelessWidget {
   const AdminDrawer({Key? key}) : super(key: key);
@@ -70,7 +69,7 @@ class AdminDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.assignment_outlined, color: Colors.teal),
-            title: const Text('Visualizar Reportes'),
+            title: const Text('Reportes Financieros'),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppConstants.routeViewReports);

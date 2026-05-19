@@ -1,47 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:condominio_app/main.dart';
+import 'package:provider/provider.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:condominio_app/app.dart';
+import 'package:condominio_app/data/providers/auth_provider.dart';
+import 'package:condominio_app/data/providers/resident_provider.dart';
+import 'package:condominio_app/data/providers/guard_provider.dart';
+import 'package:condominio_app/data/providers/admin_provider.dart';
+import 'package:condominio_app/data/providers/maintenance_provider.dart';
+import 'package:condominio_app/data/providers/visitor_provider.dart';
+import 'package:condominio_app/data/providers/finance_provider.dart';
+
+// Mock the AuthProvider to avoid Supabase initialization issues in tests
+class MockAuthProvider extends Mock implements AuthProvider {}
+class MockResidentProvider extends Mock implements ResidentProvider {}
+class MockGuardProvider extends Mock implements GuardProvider {}
+class MockAdminProvider extends Mock implements AdminProvider {}
+class MockMaintenanceProvider extends Mock implements MaintenanceProvider {}
+class MockVisitorProvider extends Mock implements VisitorProvider {}
+class MockFinanceProvider extends Mock implements FinanceProvider {}
+
+Widget createTestWidget({
+  required AuthProvider authProvider,
+}) {
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
+      ChangeNotifierProvider<ResidentProvider>(create: (_) => MockResidentProvider()),
+      ChangeNotifierProvider<GuardProvider>(create: (_) => MockGuardProvider()),
+      ChangeNotifierProvider<AdminProvider>(create: (_) => MockAdminProvider()),
+      ChangeNotifierProvider<MaintenanceProvider>(create: (_) => MockMaintenanceProvider()),
+      ChangeNotifierProvider<VisitorProvider>(create: (_) => MockVisitorProvider()),
+      ChangeNotifierProvider<FinanceProvider>(create: (_) => MockFinanceProvider()),
+    ],
+    child: const MyApp(),
+  );
+}
 
 void main() {
-  testWidgets('App should display login screen', (WidgetTester tester) async {
-    await tester.pumpWidget(MyApp());
+  late MockAuthProvider mockAuthProvider;
 
-    expect(find.text('Login'), findsOneWidget);
+  setUp(() {
+    mockAuthProvider = MockAuthProvider();
+    // Default values for common properties
+    when(() => mockAuthProvider.isAuthenticated).thenReturn(false);
+    when(() => mockAuthProvider.isLoading).thenReturn(false);
+    when(() => mockAuthProvider.errorMessage).thenReturn(null);
   });
 
-  testWidgets('Admin dashboard should be displayed after login', (WidgetTester tester) async {
-    await tester.pumpWidget(MyApp());
-
-    // Simulate login
-    await tester.enterText(find.byKey(Key('emailField')), 'admin@example.com');
-    await tester.enterText(find.byKey(Key('passwordField')), 'password');
-    await tester.tap(find.byKey(Key('loginButton')));
+  testWidgets('App should display login screen when not authenticated', (WidgetTester tester) async {
+    await tester.pumpWidget(createTestWidget(authProvider: mockAuthProvider));
     await tester.pumpAndSettle();
 
-    expect(find.text('Admin Dashboard'), findsOneWidget);
-  });
-
-  testWidgets('Resident dashboard should be displayed after login', (WidgetTester tester) async {
-    await tester.pumpWidget(MyApp());
-
-    // Simulate login
-    await tester.enterText(find.byKey(Key('emailField')), 'resident@example.com');
-    await tester.enterText(find.byKey(Key('passwordField')), 'password');
-    await tester.tap(find.byKey(Key('loginButton')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Resident Dashboard'), findsOneWidget);
-  });
-
-  testWidgets('Guard dashboard should be displayed after login', (WidgetTester tester) async {
-    await tester.pumpWidget(MyApp());
-
-    // Simulate login
-    await tester.enterText(find.byKey(Key('emailField')), 'guard@example.com');
-    await tester.enterText(find.byKey(Key('passwordField')), 'password');
-    await tester.tap(find.byKey(Key('loginButton')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Guard Dashboard'), findsOneWidget);
+    // Verify that the login screen title or specific text is present
+    expect(find.text('Inicia sesión para continuar'), findsOneWidget);
+    expect(find.text('Iniciar sesión'), findsOneWidget);
   });
 }

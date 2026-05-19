@@ -1,0 +1,41 @@
+# Flutter-related
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.packages
+
+# Android-related
+**/android/local.properties
+**/android/.gradle/
+**/android/app/build/
+**/android/captures/
+**/android/.externalNativeBuild/
+**/android/.cxx/
+
+# iOS-related
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/app.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/DerivedData/
+**/ios/.generated/
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.h
+**/ios/Runner/GeneratedPluginRegistrant.m
+
+# IDEs and Tools
+**/.idea/
+**/.vscode/
+**/*.iml
+**/*.ipr
+**/*.iws
+.DS_Store
+
+# Environment variables
+.env

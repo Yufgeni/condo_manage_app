@@ -2,12 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/report_model.dart';
 import '../models/user_model.dart';
-import '../services/image_service.dart';
 import '../services/user_service.dart';
+import '../services/report_service.dart';
 
 class AdminProvider extends ChangeNotifier {
-  final ImageService _imageService = ImageService();
   final UserService _userService = UserService();
+  final ReportService _reportService = ReportService();
   
   final List<ReportModel> _reports = [];
   List<UserModel> _users = [];
@@ -27,6 +27,59 @@ class AdminProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> fetchReports() async {
+    _isLoading = true;
+    notifyListeners();
+    final newReports = await _reportService.getAllReports();
+    _reports.clear();
+    _reports.addAll(newReports);
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> resolveReport(String reportId) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _reportService.updateReportStatus(reportId, 'resolved');
+    if (success) {
+      final index = _reports.indexWhere((r) => r.id == reportId);
+      if (index != -1) {
+        _reports[index] = _reports[index].copyWith(status: 'resolved');
+      }
+    }
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> uploadReport({
+    required File image,
+    required String title,
+    required String description,
+    required String authorId,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final newReport = ReportModel(
+      id: '',
+      title: title,
+      description: description,
+      createdAt: DateTime.now(),
+      createdBy: authorId,
+    );
+
+    final success = await _reportService.createReport(newReport, image);
+    if (success) {
+      await fetchReports();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  // --- Otros métodos existentes ---
   Future<bool> verifyPassword(String password) async {
     return await _userService.verifyPassword(password);
   }
@@ -134,37 +187,5 @@ class AdminProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     return success;
-  }
-
-  Future<bool> uploadReport({
-    required File image,
-    required String description,
-    required String authorId,
-  }) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final imageUrl = await _imageService.uploadImage(image);
-      if (imageUrl != null) {
-        final newReport = ReportModel(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          description: description,
-          imageUrl: imageUrl,
-          date: DateTime.now(),
-          authorId: authorId,
-        );
-        _reports.insert(0, newReport);
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      }
-    } catch (e) {
-      debugPrint('Error uploading report: $e');
-    }
-
-    _isLoading = false;
-    notifyListeners();
-    return false;
   }
 }
