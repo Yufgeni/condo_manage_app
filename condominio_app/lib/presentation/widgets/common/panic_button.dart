@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PanicButton extends StatelessWidget {
-  const PanicButton({Key? key}) : super(key: key);
+  const PanicButton({super.key});
 
   Future<void> _makePanicCall(BuildContext context) async {
     final Uri url = Uri.parse('tel:911');

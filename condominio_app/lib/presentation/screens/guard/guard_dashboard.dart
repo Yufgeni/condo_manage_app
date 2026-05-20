@@ -7,7 +7,7 @@ import '../../widgets/common/panic_button.dart';
 import '../../widgets/guard/guard_drawer.dart';
 
 class GuardDashboard extends StatefulWidget {
-  const GuardDashboard({Key? key}) : super(key: key);
+  const GuardDashboard({super.key});
 
   @override
   State<GuardDashboard> createState() => _GuardDashboardState();

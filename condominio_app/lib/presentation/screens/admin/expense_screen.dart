@@ -7,7 +7,7 @@ import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 
 class ExpenseScreen extends StatefulWidget {
-  const ExpenseScreen({Key? key}) : super(key: key);
+  const ExpenseScreen({super.key});
 
   @override
   State<ExpenseScreen> createState() => _ExpenseScreenState();
@@ -43,12 +43,13 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     final concept = _showCustomConcept ? _customConceptController.text : _selectedConcept!;
 
     final expense = ExpenseModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: '',
       month: _selectedMonth!,
-      year: _selectedYear!,
+      year: int.parse(_selectedYear!),
       concept: concept,
       amount: double.tryParse(_amountController.text) ?? 0.0,
-      date: DateTime.now(),
+      createdAt: DateTime.now(),
+      expenseDate: DateTime.now(),
     );
 
     final success = await financeProvider.registerExpense(expense);
@@ -87,7 +88,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       decoration: const InputDecoration(labelText: 'Mes', border: OutlineInputBorder()),
-                      value: _selectedMonth,
+                      initialValue: _selectedMonth,
                       items: financeProvider.months.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
                       onChanged: (v) => setState(() => _selectedMonth = v),
                     ),
@@ -96,7 +97,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       decoration: const InputDecoration(labelText: 'Año', border: OutlineInputBorder()),
-                      value: _selectedYear,
+                      initialValue: _selectedYear,
                       items: financeProvider.years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
                       onChanged: (v) => setState(() => _selectedYear = v),
                     ),

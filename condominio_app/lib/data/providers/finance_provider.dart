@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
-import '../models/income_model.dart';
+import 'dart:io';
+import '../models/payment_model.dart';
 import '../models/expense_model.dart';
+import '../models/income_model.dart';
+import '../services/finance_service.dart';
 
 class FinanceProvider extends ChangeNotifier {
-  final List<IncomeModel> _incomes = [];
-  final List<ExpenseModel> _expenses = [];
+  final FinanceService _financeService = FinanceService();
+
+  List<PaymentModel> _pendingPayments = [];
+  List<PaymentModel> _residentPayments = [];
+  List<PaymentModel> _monthlyIncomes = [];
+  List<ExpenseModel> _monthlyExpenses = [];
   bool _isLoading = false;
 
-  List<IncomeModel> get incomes => _incomes;
-  List<ExpenseModel> get expenses => _expenses;
+  List<PaymentModel> get pendingPayments => _pendingPayments;
+  List<PaymentModel> get residentPayments => _residentPayments;
+  List<PaymentModel> get monthlyIncomes => _monthlyIncomes;
+  List<ExpenseModel> get monthlyExpenses => _monthlyExpenses;
   bool get isLoading => _isLoading;
 
   final List<String> months = [
@@ -35,31 +44,91 @@ class FinanceProvider extends ChangeNotifier {
     'Otros'
   ];
 
-  Future<bool> registerIncome(IncomeModel income) async {
+  Future<void> fetchPendingPayments() async {
+    _isLoading = true;
+    notifyListeners();
+    _pendingPayments = await _financeService.getAllPendingPayments();
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> fetchResidentPayments(String residentId) async {
+    _isLoading = true;
+    notifyListeners();
+    _residentPayments = await _financeService.getPaymentsByResident(residentId);
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> registerPayment({
+    required String residentId,
+    required double amount,
+    required String month,
+    required String year,
+    File? image,
+    String? description,
+    bool isAdminRegistration = false,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
-    // Simular retraso de red o base de datos
-    await Future.delayed(const Duration(seconds: 1));
+    final payment = PaymentModel(
+      id: '',
+      residentId: residentId,
+      amount: amount,
+      month: month,
+      year: year,
+      status: isAdminRegistration ? 'paid' : 'pending',
+      createdAt: DateTime.now(),
+      description: description,
+    );
 
-    _incomes.add(income);
-
+    final success = await _financeService.uploadPayment(payment, image);
+    
     _isLoading = false;
     notifyListeners();
-    return true;
+    return success;
+  }
+
+  Future<bool> registerIncome(IncomeModel income) async {
+    return await registerPayment(
+      residentId: income.residentId,
+      amount: income.amount,
+      month: income.month,
+      year: income.year,
+      description: income.concept,
+      isAdminRegistration: true,
+    );
+  }
+
+  Future<bool> approvePayment(String paymentId) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _financeService.approvePayment(paymentId);
+    if (success) {
+      _pendingPayments.removeWhere((p) => p.id == paymentId);
+    }
+    _isLoading = false;
+    notifyListeners();
+    return success;
   }
 
   Future<bool> registerExpense(ExpenseModel expense) async {
     _isLoading = true;
     notifyListeners();
-
-    // Simular retraso
-    await Future.delayed(const Duration(seconds: 1));
-
-    _expenses.add(expense);
-
+    final success = await _financeService.createExpense(expense);
     _isLoading = false;
     notifyListeners();
-    return true;
+    return success;
+  }
+
+  Future<void> fetchMonthlyData(String month, String year) async {
+    _isLoading = true;
+    notifyListeners();
+    final yearInt = int.tryParse(year) ?? DateTime.now().year;
+    _monthlyIncomes = await _financeService.getMonthlyIncomes(month, yearInt);
+    _monthlyExpenses = await _financeService.getMonthlyExpenses(month, yearInt);
+    _isLoading = false;
+    notifyListeners();
   }
 }

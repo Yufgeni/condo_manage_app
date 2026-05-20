@@ -9,7 +9,7 @@ import '../../../data/models/visitor_model.dart';
 import '../../../core/utils/ui_utils.dart';
 
 class VisitorsScreen extends StatefulWidget {
-  const VisitorsScreen({Key? key}) : super(key: key);
+  const VisitorsScreen({super.key});
 
   @override
   State<VisitorsScreen> createState() => _VisitorsScreenState();
@@ -31,6 +31,7 @@ class _VisitorsScreenState extends State<VisitorsScreen> with SingleTickerProvid
 
   void _loadData() {
     Future.microtask(() {
+      if (!mounted) return;
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final visitorProvider = Provider.of<VisitorProvider>(context, listen: false);
       if (authProvider.currentUser != null) {

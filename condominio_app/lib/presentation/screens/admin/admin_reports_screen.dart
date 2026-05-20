@@ -9,7 +9,7 @@ import '../../widgets/common/custom_text_field.dart';
 import '../../widgets/common/image_picker_widget.dart';
 
 class AdminReportsScreen extends StatefulWidget {
-  const AdminReportsScreen({Key? key}) : super(key: key);
+  const AdminReportsScreen({super.key});
 
   @override
   State<AdminReportsScreen> createState() => _AdminReportsScreenState();
@@ -230,6 +230,24 @@ class _ReportCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final String status;
+  const _StatusChip({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final isResolved = status == 'resolved';
+    return Chip(
+      label: Text(
+        isResolved ? 'Resuelto' : 'Pendiente',
+        style: const TextStyle(color: Colors.white, fontSize: 12),
+      ),
+      backgroundColor: isResolved ? Colors.green : Colors.orange,
+      padding: EdgeInsets.zero,
     );
   }
 }

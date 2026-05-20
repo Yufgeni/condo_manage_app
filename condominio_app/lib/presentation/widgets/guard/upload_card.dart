@@ -6,11 +6,11 @@ class UploadCard extends StatelessWidget {
   final String date;
 
   const UploadCard({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.text,
     required this.date,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class UploadCard extends StatelessWidget {
               height: 150,
               width: double.infinity,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (context, error, stackTrace) => Container(
                 height: 150,
                 color: Colors.grey[300],
                 child: const Icon(Icons.image_not_supported, size: 50),

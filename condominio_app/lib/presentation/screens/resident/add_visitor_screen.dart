@@ -10,7 +10,7 @@ import '../../widgets/common/custom_text_field.dart';
 import '../../widgets/common/custom_button.dart';
 
 class AddVisitorScreen extends StatefulWidget {
-  const AddVisitorScreen({Key? key}) : super(key: key);
+  const AddVisitorScreen({super.key});
 
   @override
   State<AddVisitorScreen> createState() => _AddVisitorScreenState();

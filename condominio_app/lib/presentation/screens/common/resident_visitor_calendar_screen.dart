@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../../data/providers/visitor_provider.dart';
 import '../../../data/providers/admin_provider.dart';
 import '../../../data/models/user_model.dart';
@@ -9,7 +8,7 @@ import '../../../data/models/user_model.dart';
 class ResidentVisitorCalendarScreen extends StatefulWidget {
   final String residentId;
 
-  const ResidentVisitorCalendarScreen({Key? key, required this.residentId}) : super(key: key);
+  const ResidentVisitorCalendarScreen({super.key, required this.residentId});
 
   @override
   State<ResidentVisitorCalendarScreen> createState() => _ResidentVisitorCalendarScreenState();

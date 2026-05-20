@@ -1,37 +1,65 @@
 class PaymentModel {
   final String id;
   final String residentId;
+  final String? residentName; // Optional, for display
   final double amount;
-  final DateTime date;
+  final String month;
+  final String year;
   final String status;
-  final String concept;
+  final String? receiptUrl;
+  final DateTime createdAt;
+  final String? description;
 
   PaymentModel({
     required this.id,
     required this.residentId,
+    this.residentName,
     required this.amount,
-    required this.date,
-    required this.status,
-    required this.concept,
+    required this.month,
+    required this.year,
+    this.status = 'pending',
+    this.receiptUrl,
+    required this.createdAt,
+    this.description,
   });
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
     return PaymentModel(
-      id: json['id'] ?? '',
-      residentId: json['residentId'] ?? '',
+      id: json['id']?.toString() ?? '',
+      residentId: json['resident_id']?.toString() ?? '',
+      residentName: json['profiles']?['name'], // Joined data
       amount: (json['amount'] ?? 0).toDouble(),
-      date: DateTime.parse(json['date'] ?? DateTime.now().toIso8601String()),
+      month: json['month'] ?? '',
+      year: json['year']?.toString() ?? '',
       status: json['status'] ?? 'pending',
-      concept: json['concept'] ?? '',
+      receiptUrl: json['receipt_url'],
+      createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
+      description: json['description'],
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'residentId': residentId,
+        'resident_id': residentId,
         'amount': amount,
-        'date': date.toIso8601String(),
+        'month': month,
+        'year': year,
         'status': status,
-        'concept': concept,
+        'receipt_url': receiptUrl,
+        'description': description,
       };
+
+  PaymentModel copyWith({String? status}) {
+    return PaymentModel(
+      id: id,
+      residentId: residentId,
+      residentName: residentName,
+      amount: amount,
+      month: month,
+      year: year,
+      status: status ?? this.status,
+      receiptUrl: receiptUrl,
+      createdAt: createdAt,
+      description: description,
+    );
+  }
 }

@@ -7,7 +7,7 @@ import '../../widgets/common/custom_text_field.dart';
 import '../../widgets/common/custom_button.dart';
 
 class AddMaintenanceScreen extends StatefulWidget {
-  const AddMaintenanceScreen({Key? key}) : super(key: key);
+  const AddMaintenanceScreen({super.key});
 
   @override
   State<AddMaintenanceScreen> createState() => _AddMaintenanceScreenState();

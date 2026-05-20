@@ -3,13 +3,12 @@ import 'package:provider/provider.dart';
 import '../../../data/models/resident_model.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/resident_provider.dart';
-import '../../../core/utils/validators.dart';
 import '../../../core/utils/ui_utils.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 
 class ResidentProfileScreen extends StatefulWidget {
-  const ResidentProfileScreen({Key? key}) : super(key: key);
+  const ResidentProfileScreen({super.key});
 
   @override
   State<ResidentProfileScreen> createState() => _ResidentProfileScreenState();
@@ -419,10 +418,9 @@ class _VehicleCardState extends State<_VehicleCard> {
                         plates: _platesController.text,
                       );
                       final success = await provider.updateVehicle(updatedCar);
-                      if (mounted) {
-                        UIUtils.showSnackBar(context, success ? 'Vehículo actualizado' : 'Error al guardar', isError: !success);
-                        if (success) setState(() => _isEditing = false);
-                      }
+                      if (!mounted) return;
+                      UIUtils.showSnackBar(context, success ? 'Vehículo actualizado' : 'Error al guardar', isError: !success);
+                      if (success) setState(() => _isEditing = false);
                     },
                     child: const Text('Guardar cambios'),
                   ),

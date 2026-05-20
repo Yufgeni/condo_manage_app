@@ -4,7 +4,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
 
 class GuardDrawer extends StatelessWidget {
-  const GuardDrawer({Key? key}) : super(key: key);
+  const GuardDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {

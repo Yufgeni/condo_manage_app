@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../data/providers/guard_provider.dart';
 
 class GuardOnDutyScreen extends StatefulWidget {
-  const GuardOnDutyScreen({Key? key}) : super(key: key);
+  const GuardOnDutyScreen({super.key});
 
   @override
   State<GuardOnDutyScreen> createState() => _GuardOnDutyScreenState();

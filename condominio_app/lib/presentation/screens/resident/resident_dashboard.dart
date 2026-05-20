@@ -6,7 +6,7 @@ import '../../widgets/common/panic_button.dart';
 import '../../widgets/resident/resident_drawer.dart';
 
 class ResidentDashboard extends StatelessWidget {
-  const ResidentDashboard({Key? key}) : super(key: key);
+  const ResidentDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +98,7 @@ class _ResidentCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundColor: color.withOpacity(0.15),
+              backgroundColor: color.withValues(alpha: 0.15),
               child: Icon(icon, size: 32, color: color),
             ),
             const SizedBox(height: 12),

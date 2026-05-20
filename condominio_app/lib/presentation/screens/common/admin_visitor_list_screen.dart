@@ -4,7 +4,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/admin_provider.dart';
 
 class AdminVisitorListScreen extends StatefulWidget {
-  const AdminVisitorListScreen({Key? key}) : super(key: key);
+  const AdminVisitorListScreen({super.key});
 
   @override
   State<AdminVisitorListScreen> createState() => _AdminVisitorListScreenState();

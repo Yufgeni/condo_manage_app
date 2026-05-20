@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/report_model.dart';
 
@@ -14,7 +15,9 @@ class ReportService {
       
       return (response as List).map((data) => ReportModel.fromJson(data)).toList();
     } catch (e) {
-      print('Error al obtener reportes: $e');
+      if (kDebugMode) {
+        print('Error al obtener reportes: $e');
+      }
       return [];
     }
   }

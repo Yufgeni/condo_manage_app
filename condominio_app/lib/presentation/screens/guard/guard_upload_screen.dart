@@ -6,10 +6,9 @@ import '../../../data/providers/auth_provider.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 import '../../widgets/common/image_picker_widget.dart';
-import '../admin/admin_reports_screen.dart'; // Import to reuse _ReportCard and _StatusChip if needed or just copy them
 
 class GuardUploadScreen extends StatefulWidget {
-  const GuardUploadScreen({Key? key}) : super(key: key);
+  const GuardUploadScreen({super.key});
 
   @override
   State<GuardUploadScreen> createState() => _GuardUploadScreenState();

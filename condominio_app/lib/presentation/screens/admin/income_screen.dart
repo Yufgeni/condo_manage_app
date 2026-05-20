@@ -9,7 +9,7 @@ import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 
 class IncomeScreen extends StatefulWidget {
-  const IncomeScreen({Key? key}) : super(key: key);
+  const IncomeScreen({super.key});
 
   @override
   State<IncomeScreen> createState() => _IncomeScreenState();
@@ -26,10 +26,11 @@ class _IncomeScreenState extends State<IncomeScreen> {
   bool _showCustomConcept = false;
 
   @override
-  void dispose() {
-    _customConceptController.dispose();
-    _amountController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ResidentProvider>(context, listen: false).fetchAllResidents();
+    });
   }
 
   void _onRegister() async {
@@ -46,7 +47,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
     final concept = _showCustomConcept ? _customConceptController.text : _selectedConcept!;
 
     final income = IncomeModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: '',
       residentId: _selectedResident!.id,
       residentName: _selectedResident!.name,
       month: _selectedMonth!,
@@ -94,7 +95,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       decoration: const InputDecoration(labelText: 'Mes', border: OutlineInputBorder()),
-                      value: _selectedMonth,
+                      initialValue: _selectedMonth,
                       items: financeProvider.months.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
                       onChanged: (v) => setState(() => _selectedMonth = v),
                     ),
@@ -103,7 +104,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       decoration: const InputDecoration(labelText: 'Año', border: OutlineInputBorder()),
-                      value: _selectedYear,
+                      initialValue: _selectedYear,
                       items: financeProvider.years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
                       onChanged: (v) => setState(() => _selectedYear = v),
                     ),
@@ -118,7 +119,10 @@ class _IncomeScreenState extends State<IncomeScreen> {
                   decoration: const InputDecoration(labelText: 'Residente', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
                   value: _selectedResident,
                   items: residents.map((r) => DropdownMenuItem(value: r, child: Text('${r.name} (${r.unitNumber})'))).toList(),
-                  onChanged: (v) => setState(() => _selectedResident = v),
+                  onChanged: (v) => setState(() {
+                    _selectedResident = v;
+                    print('Residente seleccionado: ${v?.name}, ID: ${v?.id}');
+                  }),
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
@@ -162,7 +166,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                 CustomButton(
                   text: 'Registrar Pago',
                   onPressed: (_selectedResident != null &&
-                             _selectedConcept != null &&
+                             (_selectedConcept != null && (_selectedConcept != 'ADD_NEW' || _customConceptController.text.isNotEmpty)) &&
                              _amountController.text.isNotEmpty)
                              ? _onRegister : null,
                   isLoading: financeProvider.isLoading,

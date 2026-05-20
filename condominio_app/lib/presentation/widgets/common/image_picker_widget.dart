@@ -5,14 +5,13 @@ import '../../../data/services/image_service.dart';
 class ImagePickerWidget extends StatelessWidget {
   final File? selectedImage;
   final void Function(File) onImageSelected;
+  final ImageService _imageService = ImageService();
 
   ImagePickerWidget({
-    Key? key,
+    super.key,
     this.selectedImage,
     required this.onImageSelected,
-  }) : super(key: key);
-
-  final ImageService _imageService = ImageService();
+  });
 
   @override
   Widget build(BuildContext context) {

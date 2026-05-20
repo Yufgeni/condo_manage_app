@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/payment_model.dart';
-import 'package:intl/intl.dart';
 
 class PaymentCard extends StatelessWidget {
   final PaymentModel payment;
 
-  const PaymentCard({Key? key, required this.payment}) : super(key: key);
+  const PaymentCard({super.key, required this.payment});
 
   @override
   Widget build(BuildContext context) {
@@ -14,15 +13,17 @@ class PaymentCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: isPaid ? Colors.green[100] : Colors.orange[100],
+          backgroundColor: isPaid
+              ? Colors.green.withValues(alpha: 0.1)
+              : Colors.orange.withValues(alpha: 0.1),
           child: Icon(
             isPaid ? Icons.check_circle : Icons.pending,
             color: isPaid ? Colors.green : Colors.orange,
           ),
         ),
-        title: Text(payment.concept),
+        title: Text('Cuota ${payment.month} ${payment.year}'),
         subtitle: Text(
-          DateFormat('dd/MM/yyyy').format(payment.date),
+          '${payment.createdAt.day}/${payment.createdAt.month}/${payment.createdAt.year}',
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -35,14 +36,16 @@ class PaymentCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: isPaid ? Colors.green[100] : Colors.orange[100],
+                color: isPaid
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 isPaid ? 'Pagado' : 'Pendiente',
                 style: TextStyle(
                   fontSize: 11,
-                  color: isPaid ? Colors.green[800] : Colors.orange[800],
+                  color: isPaid ? Colors.green : Colors.orange,
                 ),
               ),
             ),

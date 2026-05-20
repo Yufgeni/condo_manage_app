@@ -9,7 +9,7 @@ import '../../../data/providers/finance_provider.dart';
 import '../../widgets/common/custom_button.dart';
 
 class ViewReportsScreen extends StatefulWidget {
-  const ViewReportsScreen({Key? key}) : super(key: key);
+  const ViewReportsScreen({super.key});
 
   @override
   State<ViewReportsScreen> createState() => _ViewReportsScreenState();
@@ -20,34 +20,29 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
   String? _selectedYear;
   bool _isGenerating = false;
 
-  // Datos dummy para el reporte
-  final List<Map<String, dynamic>> _dummyIncomes = [
-    {'concept': 'Cuotas Mensuales (45 resid)', 'amount': 45000.0},
-    {'concept': 'Multas', 'amount': 1200.0},
-    {'concept': 'Uso de Salón Social', 'amount': 800.0},
-  ];
+  @override
+  void initState() {
+    super.initState();
+  }
 
-  final List<Map<String, dynamic>> _dummyExpenses = [
-    {'concept': 'Seguridad Privada', 'amount': 15000.0},
-    {'concept': 'Limpieza y Áreas Verdes', 'amount': 8000.0},
-    {'concept': 'Mantenimiento Elevador', 'amount': 3500.0},
-    {'concept': 'Electricidad Áreas Comunes', 'amount': 4200.0},
-    {'concept': 'Reparación Portón', 'amount': 1500.0},
-  ];
+  void _fetchData() {
+    if (_selectedMonth != null && _selectedYear != null) {
+      Provider.of<FinanceProvider>(context, listen: false).fetchMonthlyData(_selectedMonth!, _selectedYear!);
+    }
+  }
 
-  double get _totalIncomes => _dummyIncomes.fold(0, (sum, item) => sum + item['amount']);
-  double get _totalExpenses => _dummyExpenses.fold(0, (sum, item) => sum + item['amount']);
+  double get _totalIncomes => Provider.of<FinanceProvider>(context, listen: false).monthlyIncomes.fold(0, (sum, item) => sum + item.amount);
+  double get _totalExpenses => Provider.of<FinanceProvider>(context, listen: false).monthlyExpenses.fold(0, (sum, item) => sum + item.amount);
   double get _balance => _totalIncomes - _totalExpenses;
 
   Future<void> _generateAndSharePDF() async {
     if (_selectedMonth == null || _selectedYear == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor selecciona mes y año')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor selecciona mes y año')));
       return;
     }
 
     setState(() => _isGenerating = true);
+    final financeProvider = Provider.of<FinanceProvider>(context, listen: false);
 
     try {
       final pdf = pw.Document();
@@ -67,13 +62,13 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
                 pw.SizedBox(height: 10),
                 pw.Text('Periodo: $_selectedMonth $_selectedYear'),
                 pw.SizedBox(height: 20),
-                pw.Text('INGRESOS', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                pw.Text('INGRESOS (PAGOS APROBADOS)', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.Divider(),
-                ..._dummyIncomes.map((i) => pw.Row(
+                ...financeProvider.monthlyIncomes.map((i) => pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text(i['concept']),
-                    pw.Text('\$${i['amount'].toStringAsFixed(2)}'),
+                    pw.Text('${i.residentName ?? 'Residente'} - ${i.description ?? 'Cuota'}'),
+                    pw.Text('\$${i.amount.toStringAsFixed(2)}'),
                   ],
                 )),
                 pw.SizedBox(height: 10),
@@ -88,11 +83,11 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
                 pw.SizedBox(height: 30),
                 pw.Text('EGRESOS', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.Divider(),
-                ..._dummyExpenses.map((e) => pw.Row(
+                ...financeProvider.monthlyExpenses.map((e) => pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text(e['concept']),
-                    pw.Text('\$${e['amount'].toStringAsFixed(2)}'),
+                    pw.Text(e.concept),
+                    pw.Text('\$${e.amount.toStringAsFixed(2)}'),
                   ],
                 )),
                 pw.SizedBox(height: 10),
@@ -107,9 +102,9 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
                 pw.SizedBox(height: 30),
                 pw.Container(
                   padding: const pw.EdgeInsets.all(10),
-                  decoration: pw.BoxDecoration(
+                  decoration: const pw.BoxDecoration(
                     color: PdfColors.grey200,
-                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+                    borderRadius: pw.BorderRadius.all(pw.Radius.circular(5)),
                   ),
                   child: pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -144,9 +139,7 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
         text: 'Hola, te comparto el reporte financiero de $_selectedMonth $_selectedYear.',
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al generar PDF: $e')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al generar PDF: $e')));
     } finally {
       setState(() => _isGenerating = false);
     }
@@ -157,7 +150,7 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
     final financeProvider = Provider.of<FinanceProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Visualizar Reportes Financieros')),
+      appBar: AppBar(title: const Text('Reportes Financieros')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -171,18 +164,24 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Mes', border: OutlineInputBorder()),
-                    value: _selectedMonth,
+                    initialValue: _selectedMonth,
                     items: financeProvider.months.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
-                    onChanged: (v) => setState(() => _selectedMonth = v),
+                    onChanged: (v) {
+                      setState(() => _selectedMonth = v);
+                      _fetchData();
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Año', border: OutlineInputBorder()),
-                    value: _selectedYear,
+                    initialValue: _selectedYear,
                     items: financeProvider.years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
-                    onChanged: (v) => setState(() => _selectedYear = v),
+                    onChanged: (v) {
+                      setState(() => _selectedYear = v);
+                      _fetchData();
+                    },
                   ),
                 ),
               ],
@@ -191,18 +190,22 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
               const SizedBox(height: 32),
               const Divider(),
               const SizedBox(height: 16),
-              Text(
-                'Resumen de $_selectedMonth $_selectedYear',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 24),
-              _buildSummaryCard(),
-              const SizedBox(height: 32),
-              CustomButton(
-                text: 'Enviar reporte por WhatsApp (PDF)',
-                onPressed: _generateAndSharePDF,
-                isLoading: _isGenerating,
-              ),
+              if (financeProvider.isLoading)
+                const Center(child: CircularProgressIndicator())
+              else ...[
+                Text(
+                  'Resumen de $_selectedMonth $_selectedYear',
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+                _buildSummaryCard(),
+                const SizedBox(height: 32),
+                CustomButton(
+                  text: 'Enviar reporte por WhatsApp (PDF)',
+                  onPressed: _generateAndSharePDF,
+                  isLoading: _isGenerating,
+                ),
+              ],
             ],
           ],
         ),

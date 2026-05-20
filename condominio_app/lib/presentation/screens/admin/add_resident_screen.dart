@@ -6,7 +6,7 @@ import '../../widgets/common/custom_text_field.dart';
 import '../../widgets/common/custom_button.dart';
 
 class AddResidentScreen extends StatefulWidget {
-  const AddResidentScreen({Key? key}) : super(key: key);
+  const AddResidentScreen({super.key});
 
   @override
   State<AddResidentScreen> createState() => _AddResidentScreenState();

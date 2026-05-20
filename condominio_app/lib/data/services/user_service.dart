@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
@@ -14,7 +15,9 @@ class UserService {
       
       return (response as List).map((data) => UserModel.fromJson(data)).toList();
     } catch (e) {
-      print('Error getting users: $e');
+      if (kDebugMode) {
+        print('Error getting users: $e');
+      }
       return [];
     }
   }

@@ -4,7 +4,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/auth_provider.dart';
 
 class AdminDrawer extends StatelessWidget {
-  const AdminDrawer({Key? key}) : super(key: key);
+  const AdminDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {

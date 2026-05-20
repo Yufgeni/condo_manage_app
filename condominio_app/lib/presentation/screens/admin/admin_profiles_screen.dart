@@ -9,7 +9,7 @@ import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 
 class AdminProfilesScreen extends StatefulWidget {
-  const AdminProfilesScreen({Key? key}) : super(key: key);
+  const AdminProfilesScreen({super.key});
 
   static Future<bool?> showPasswordDialog(BuildContext context) async {
     final controller = TextEditingController();
@@ -212,7 +212,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _selectedRole,
+              initialValue: _selectedRole,
               decoration: const InputDecoration(
                 labelText: 'Perfil',
                 border: OutlineInputBorder(),
@@ -222,7 +222,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
                 DropdownMenuItem(value: AppConstants.roleResident, child: Text('Residente')),
                 DropdownMenuItem(value: AppConstants.roleGuard, child: Text('Vigilante')),
               ],
-              onChanged: (v) => setState(() => _selectedRole = v!),
+              onChanged: (v) => setState(() => _selectedRole = v ?? AppConstants.roleResident),
             ),
             const SizedBox(height: 24),
             CustomButton(
@@ -258,7 +258,9 @@ class _NewProfileTabState extends State<_NewProfileTab> {
                 if (success && mounted) {
                   UIUtils.showSnackBar(context, 'Perfil creado exitosamente', isError: false);
                   _clearForm();
-                } else if (mounted) {
+                } else if (!mounted) {
+                  return;
+                } else {
                   UIUtils.showSnackBar(context, adminProvider.errorMessage ?? 'Error al crear el perfil');
                 }
               },
@@ -348,7 +350,7 @@ class _UserCardState extends State<_UserCard> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: widget.user.isOnDuty ? Colors.green[100] : Colors.grey[200],
+                                color: widget.user.isOnDuty ? Colors.green.withValues(alpha: 0.1) : Colors.grey[200],
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -508,7 +510,7 @@ class _UserCardState extends State<_UserCard> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && context.mounted) {
       final success = await adminProvider.deleteUser(widget.user.id);
       if (success && context.mounted) {
         UIUtils.showSnackBar(context, 'Perfil eliminado', isError: false);

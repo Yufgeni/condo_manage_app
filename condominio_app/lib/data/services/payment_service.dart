@@ -1,31 +1,37 @@
 import '../models/payment_model.dart';
 
 class PaymentService {
-  // Mock data - Replace with real API calls
+  // Mock data - Updated to match current PaymentModel
   final List<PaymentModel> _mockPayments = [
     PaymentModel(
       id: '1',
       residentId: '2',
       amount: 1500.0,
-      date: DateTime(2024, 1, 5),
+      month: 'Enero',
+      year: '2024',
       status: 'paid',
-      concept: 'Cuota de mantenimiento Enero',
+      description: 'Cuota de mantenimiento Enero',
+      createdAt: DateTime(2024, 1, 5),
     ),
     PaymentModel(
       id: '2',
       residentId: '2',
       amount: 1500.0,
-      date: DateTime(2024, 2, 3),
+      month: 'Febrero',
+      year: '2024',
       status: 'paid',
-      concept: 'Cuota de mantenimiento Febrero',
+      description: 'Cuota de mantenimiento Febrero',
+      createdAt: DateTime(2024, 2, 3),
     ),
     PaymentModel(
       id: '3',
       residentId: '2',
       amount: 1500.0,
-      date: DateTime(2024, 3, 1),
+      month: 'Marzo',
+      year: '2024',
       status: 'pending',
-      concept: 'Cuota de mantenimiento Marzo',
+      description: 'Cuota de mantenimiento Marzo',
+      createdAt: DateTime(2024, 3, 1),
     ),
   ];
 

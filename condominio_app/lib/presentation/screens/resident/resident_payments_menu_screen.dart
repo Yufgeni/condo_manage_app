@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 
 class ResidentPaymentsMenuScreen extends StatelessWidget {
-  const ResidentPaymentsMenuScreen({Key? key}) : super(key: key);
+  const ResidentPaymentsMenuScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +71,7 @@ class _MenuCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 35,
-                backgroundColor: color.withOpacity(0.1),
+                backgroundColor: color.withValues(alpha: 0.1),
                 child: Icon(icon, size: 40, color: color),
               ),
               const SizedBox(width: 20),

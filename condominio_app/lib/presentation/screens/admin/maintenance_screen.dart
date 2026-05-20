@@ -5,7 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/maintenance_provider.dart';
 
 class MaintenanceScreen extends StatelessWidget {
-  const MaintenanceScreen({Key? key}) : super(key: key);
+  const MaintenanceScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../data/providers/finance_provider.dart';
 import '../../widgets/admin/admin_drawer.dart';
 
 class FinanceScreen extends StatelessWidget {
-  const FinanceScreen({Key? key}) : super(key: key);
+  const FinanceScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -91,63 +93,84 @@ class FinanceScreen extends StatelessWidget {
   }
 }
 
-class ApprovePaymentsScreen extends StatelessWidget {
-  const ApprovePaymentsScreen({Key? key}) : super(key: key);
+class ApprovePaymentsScreen extends StatefulWidget {
+  const ApprovePaymentsScreen({super.key});
+
+  @override
+  State<ApprovePaymentsScreen> createState() => _ApprovePaymentsScreenState();
+}
+
+class _ApprovePaymentsScreenState extends State<ApprovePaymentsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<FinanceProvider>(context, listen: false).fetchPendingPayments();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final financeProvider = Provider.of<FinanceProvider>(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Aprobar Pagos')),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _getPendingPayments(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No hay pagos pendientes por aprobar'));
-          }
-
-          final payments = snapshot.data!;
-          return ListView.builder(
-            itemCount: payments.length,
-            padding: const EdgeInsets.all(12),
-            itemBuilder: (context, index) {
-              final payment = payments[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.blueAccent,
-                    child: Icon(Icons.payment, color: Colors.white),
-                  ),
-                  title: Text(payment['resident_name']),
-                  subtitle: Text('${payment['concept']} - \$${payment['amount']}'),
-                  trailing: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Pago aprobado exitosamente')),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    child: const Text('Aprobar', style: TextStyle(color: Colors.white)),
-                  ),
+      body: financeProvider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : financeProvider.pendingPayments.isEmpty
+              ? const Center(child: Text('No hay pagos pendientes por aprobar'))
+              : ListView.builder(
+                  itemCount: financeProvider.pendingPayments.length,
+                  padding: const EdgeInsets.all(12),
+                  itemBuilder: (context, index) {
+                    final payment = financeProvider.pendingPayments[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        leading: const CircleAvatar(
+                          backgroundColor: Colors.blueAccent,
+                          child: Icon(Icons.payment, color: Colors.white),
+                        ),
+                        title: Text(payment.residentName ?? 'Residente Desconocido'),
+                        subtitle: Text('Cuota ${payment.month} ${payment.year} - \$${payment.amount}'),
+                        trailing: ElevatedButton(
+                          onPressed: () async {
+                            final success = await financeProvider.approvePayment(payment.id);
+                            if (mounted && success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Pago aprobado exitosamente'), backgroundColor: Colors.green),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                          child: const Text('Aprobar', style: TextStyle(color: Colors.white)),
+                        ),
+                        onTap: payment.receiptUrl != null
+                            ? () => _showReceipt(context, payment.receiptUrl!)
+                            : null,
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          );
-        },
-      ),
     );
   }
 
-  Future<List<Map<String, dynamic>>> _getPendingPayments() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      {'id': '1', 'resident_name': 'Juan Pérez', 'amount': 1500, 'concept': 'Mantenimiento Mayo', 'status': 'pending'},
-      {'id': '2', 'resident_name': 'María García', 'amount': 1500, 'concept': 'Mantenimiento Mayo', 'status': 'pending'},
-      {'id': '3', 'resident_name': 'Carlos Ruiz', 'amount': 1500, 'concept': 'Mantenimiento Mayo', 'status': 'pending'},
-    ];
+  void _showReceipt(BuildContext context, String url) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppBar(
+              title: const Text('Comprobante'),
+              leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+            ),
+            Image.network(url, fit: BoxFit.contain),
+          ],
+        ),
+      ),
+    );
   }
 }
 

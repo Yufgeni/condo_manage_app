@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
@@ -21,7 +22,9 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      print('Error en login: $e');
+      if (kDebugMode) {
+        print('Error en login: $e');
+      }
       return null;
     }
   }

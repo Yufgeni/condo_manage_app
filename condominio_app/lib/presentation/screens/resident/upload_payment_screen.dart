@@ -1,14 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
+import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/finance_provider.dart';
-import '../../../core/utils/validators.dart';
+import '../../../data/providers/resident_provider.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
+import '../../widgets/common/image_picker_widget.dart';
 
 class UploadPaymentScreen extends StatefulWidget {
-  const UploadPaymentScreen({Key? key}) : super(key: key);
+  const UploadPaymentScreen({super.key});
 
   @override
   State<UploadPaymentScreen> createState() => _UploadPaymentScreenState();
@@ -20,8 +21,7 @@ class _UploadPaymentScreenState extends State<UploadPaymentScreen> {
   final _descriptionController = TextEditingController();
   String? _selectedMonth;
   String? _selectedYear;
-  File? _image;
-  final _picker = ImagePicker();
+  File? _selectedImage;
 
   @override
   void dispose() {
@@ -30,21 +30,52 @@ class _UploadPaymentScreenState extends State<UploadPaymentScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await _picker.pickImage(source: source);
-    if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor adjunta el comprobante')));
+      return;
     }
-  }
+    if (_selectedMonth == null || _selectedYear == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selecciona el periodo del pago')));
+      return;
+    }
 
-  bool get _isFormValid {
-    return _amountController.text.isNotEmpty &&
-        _descriptionController.text.isNotEmpty &&
-        _selectedMonth != null &&
-        _selectedYear != null &&
-        _image != null;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final financeProvider = Provider.of<FinanceProvider>(context, listen: false);
+    final residentProvider = Provider.of<ResidentProvider>(context, listen: false);
+
+    // Ensure resident data is loaded to get the correct resident_id
+    if (residentProvider.resident == null || residentProvider.resident!.id.isEmpty) {
+      await residentProvider.loadResidentData(authProvider.currentUser!.id);
+    }
+
+    if (residentProvider.resident == null || residentProvider.resident!.id.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('No se pudo encontrar el ID de residente. Contacta al administrador.'),
+          backgroundColor: Colors.red,
+        ));
+      }
+      return;
+    }
+
+    final success = await financeProvider.registerPayment(
+      residentId: residentProvider.resident!.id,
+      amount: double.parse(_amountController.text),
+      month: _selectedMonth!,
+      year: _selectedYear!,
+      image: _selectedImage,
+      description: _descriptionController.text.trim(),
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(success ? 'Comprobante subido exitosamente' : 'Error al subir comprobante'),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ));
+      if (success) Navigator.pop(context);
+    }
   }
 
   @override
@@ -52,133 +83,64 @@ class _UploadPaymentScreenState extends State<UploadPaymentScreen> {
     final financeProvider = Provider.of<FinanceProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Subir un Pago')),
+      appBar: AppBar(title: const Text('Subir Comprobante')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Detalles del Pago',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              const SizedBox(height: 24),
-              CustomTextField(
-                label: 'Monto',
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                prefixIcon: const Icon(Icons.attach_money),
-                onChanged: (v) => setState(() {}),
-                validator: (v) {
-                  final res = Validators.validateRequired(v, 'Monto');
-                  if (res != null) return res;
-                  if (double.tryParse(v!) == null) return 'Monto inválido';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              CustomTextField(
-                label: 'Descripción',
-                controller: _descriptionController,
-                onChanged: (v) => setState(() {}),
-                validator: (v) => Validators.validateRequired(v, 'Descripción'),
+              const Text('Imagen del Comprobante', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 12),
+              ImagePickerWidget(
+                selectedImage: _selectedImage,
+                onImageSelected: (file) => setState(() => _selectedImage = file),
               ),
               const SizedBox(height: 24),
-              const Text('Periodo correspondiente',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text('Detalles del Pago', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                          labelText: 'Mes', border: OutlineInputBorder()),
-                      value: _selectedMonth,
-                      items: financeProvider.months
-                          .map((m) => DropdownMenuItem(value: m, child: Text(m)))
-                          .toList(),
+                      decoration: const InputDecoration(labelText: 'Mes', border: OutlineInputBorder()),
+                      initialValue: _selectedMonth,
+                      items: financeProvider.months.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
                       onChanged: (v) => setState(() => _selectedMonth = v),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                          labelText: 'Año', border: OutlineInputBorder()),
-                      value: _selectedYear,
-                      items: financeProvider.years
-                          .map((y) => DropdownMenuItem(value: y, child: Text(y)))
-                          .toList(),
+                      decoration: const InputDecoration(labelText: 'Año', border: OutlineInputBorder()),
+                      initialValue: _selectedYear,
+                      items: financeProvider.years.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
                       onChanged: (v) => setState(() => _selectedYear = v),
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                label: 'Monto pagado',
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                prefixIcon: const Icon(Icons.attach_money),
+                validator: (v) => (v == null || v.isEmpty) ? 'Campo requerido' : null,
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                label: 'Descripción (Opcional)',
+                controller: _descriptionController,
+                maxLines: 2,
+              ),
               const SizedBox(height: 32),
-              const Text('Comprobante de pago',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 12),
-              Center(
-                child: Column(
-                  children: [
-                    if (_image != null)
-                      Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(_image!, fit: BoxFit.cover),
-                        ),
-                      )
-                    else
-                      Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: const Icon(Icons.image, size: 60, color: Colors.grey),
-                      ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () => _pickImage(ImageSource.camera),
-                          icon: const Icon(Icons.camera_alt),
-                          label: const Text('Cámara'),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: () => _pickImage(ImageSource.gallery),
-                          icon: const Icon(Icons.photo_library),
-                          label: const Text('Galería'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
               CustomButton(
-                text: 'Registrar este pago',
-                onPressed: _isFormValid
-                    ? () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Pago enviado para validación'),
-                              backgroundColor: Colors.green),
-                        );
-                        Navigator.pop(context);
-                      }
-                    : null,
+                text: 'Enviar Comprobante',
+                onPressed: _submit,
+                isLoading: financeProvider.isLoading,
               ),
-              const SizedBox(height: 24),
             ],
           ),
         ),

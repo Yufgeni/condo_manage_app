@@ -4,7 +4,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/admin_provider.dart';
 
 class GuardsScreen extends StatefulWidget {
-  const GuardsScreen({Key? key}) : super(key: key);
+  const GuardsScreen({super.key});
 
   @override
   State<GuardsScreen> createState() => _GuardsScreenState();

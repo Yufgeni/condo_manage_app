@@ -7,7 +7,7 @@ import '../../../data/providers/admin_provider.dart';
 import '../../../data/providers/resident_provider.dart';
 
 class GuardResidentsScreen extends StatefulWidget {
-  const GuardResidentsScreen({Key? key}) : super(key: key);
+  const GuardResidentsScreen({super.key});
 
   @override
   State<GuardResidentsScreen> createState() => _GuardResidentsScreenState();

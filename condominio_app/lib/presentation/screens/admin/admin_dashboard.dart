@@ -6,7 +6,7 @@ import '../../widgets/admin/admin_drawer.dart';
 import '../../widgets/common/panic_button.dart';
 
 class AdminDashboard extends StatelessWidget {
-  const AdminDashboard({Key? key}) : super(key: key);
+  const AdminDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
