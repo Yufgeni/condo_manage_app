@@ -69,11 +69,11 @@ class GuardDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.assignment_outlined, color: Colors.teal),
-            title: const Text('Visualizar Reportes'),
+            leading: const Icon(Icons.history, color: Colors.teal),
+            title: const Text('Mis Reportes'),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, AppConstants.routeViewReports);
+              Navigator.pushNamed(context, AppConstants.routeGuardReports);
             },
           ),
           const Divider(),

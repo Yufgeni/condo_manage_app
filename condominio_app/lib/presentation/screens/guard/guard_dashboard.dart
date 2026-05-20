@@ -99,11 +99,11 @@ class _GuardDashboardState extends State<GuardDashboard> {
                         context, AppConstants.routeAdminVisitors),
                   ),
                   _GuardCard(
-                    title: 'Visualizar Reportes',
-                    icon: Icons.assignment_outlined,
+                    title: 'Mis Reportes',
+                    icon: Icons.history,
                     color: Colors.teal,
                     onTap: () => Navigator.pushNamed(
-                        context, AppConstants.routeViewReports),
+                        context, AppConstants.routeGuardReports),
                   ),
                 ],
               ),
@@ -141,7 +141,7 @@ class _GuardCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 28,
-              backgroundColor: color.withOpacity(0.1),
+              backgroundColor: color.withValues(alpha: 0.1),
               child: Icon(icon, size: 30, color: color),
             ),
             const SizedBox(height: 10),

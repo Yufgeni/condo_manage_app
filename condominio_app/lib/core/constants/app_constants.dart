@@ -20,6 +20,7 @@ class AppConstants {
   static const String routeGuardOnDuty = '/guard-on-duty';
   static const String routeResidentProfile = '/resident-profile';
   static const String routeGuardUpload = '/guard-upload';
+  static const String routeGuardReports = '/guard-reports';
   static const String routeResidents = '/residents';
   static const String routeGuards = '/guards';
   static const String routeMaintenance = '/maintenance';

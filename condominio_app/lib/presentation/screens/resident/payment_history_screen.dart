@@ -27,7 +27,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         }
         
         if (residentProvider.resident != null && residentProvider.resident!.id.isNotEmpty) {
-          financeProvider.fetchResidentPayments(residentProvider.resident!.id);
+          await financeProvider.fetchResidentPayments(residentProvider.resident!.id);
         }
       }
     });
@@ -36,6 +36,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
+    final residentProvider = Provider.of<ResidentProvider>(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Historial de Pagos')),
@@ -44,6 +45,9 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           : financeProvider.residentPayments.isEmpty
               ? const Center(child: Text('No tienes pagos registrados.'))
               : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: financeProvider.residentPayments.length,
+                  itemBuilder: (context, index) {
                   padding: const EdgeInsets.all(12),
                   itemCount: financeProvider.residentPayments.length,
                   itemBuilder: (context, index) {

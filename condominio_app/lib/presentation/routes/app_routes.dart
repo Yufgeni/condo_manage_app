@@ -23,6 +23,7 @@ import '../screens/resident/guard_on_duty_screen.dart';
 import '../screens/resident/resident_profile_screen.dart';
 import '../screens/guard/guard_dashboard.dart';
 import '../screens/guard/guard_upload_screen.dart';
+import '../screens/guard/guard_reports_list_screen.dart';
 
 import '../screens/admin/admin_reports_screen.dart';
 import '../screens/guard/guard_residents_screen.dart';
@@ -58,6 +59,7 @@ class AppRoutes {
         AppConstants.routeResidentProfile: (_) => const ResidentProfileScreen(),
         AppConstants.routeGuardDashboard: (_) => const GuardDashboard(),
         AppConstants.routeGuardUpload: (_) => const GuardUploadScreen(),
+        AppConstants.routeGuardReports: (_) => const GuardReportsListScreen(),
         AppConstants.routeGuardResidents: (_) => const GuardResidentsScreen(),
       };
 }

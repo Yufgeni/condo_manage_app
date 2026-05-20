@@ -24,10 +24,16 @@ class PaymentModel {
   });
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
+    // Handling nested join structure: residents -> profiles -> name
+    String? name = json['profiles']?['name']; // Fallback for old join
+    if (json['residents']?['profiles'] != null) {
+      name = json['residents']['profiles']['name'];
+    }
+
     return PaymentModel(
       id: json['id']?.toString() ?? '',
       residentId: json['resident_id']?.toString() ?? '',
-      residentName: json['profiles']?['name'], // Joined data
+      residentName: name,
       amount: (json['amount'] ?? 0).toDouble(),
       month: json['month'] ?? '',
       year: json['year']?.toString() ?? '',

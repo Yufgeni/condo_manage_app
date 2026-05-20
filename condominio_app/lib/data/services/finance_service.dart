@@ -12,13 +12,12 @@ class FinanceService {
     try {
       final response = await _supabase
           .from('payments')
-          .select('*, profiles:resident_id(name)')
+          .select()
           .eq('resident_id', residentId)
           .order('created_at', ascending: false);
       
       return (response as List).map((data) => PaymentModel.fromJson(data)).toList();
     } catch (e) {
-      print('Error al obtener pagos del residente: $e');
       return [];
     }
   }
@@ -27,13 +26,12 @@ class FinanceService {
     try {
       final response = await _supabase
           .from('payments')
-          .select('*, profiles:resident_id(name)')
+          .select('*, residents(profiles(name))')
           .eq('status', 'pending')
           .order('created_at', ascending: false);
       
       return (response as List).map((data) => PaymentModel.fromJson(data)).toList();
     } catch (e) {
-      print('Error al obtener pagos pendientes: $e');
       return [];
     }
   }
@@ -61,7 +59,6 @@ class FinanceService {
       
       return true;
     } catch (e) {
-      print('Error al registrar pago: $e');
       return false;
     }
   }
@@ -74,7 +71,6 @@ class FinanceService {
           .eq('id', paymentId);
       return true;
     } catch (e) {
-      print('Error al aprobar pago: $e');
       return false;
     }
   }
@@ -86,7 +82,6 @@ class FinanceService {
       await _supabase.from('expenses').insert(expense.toJson());
       return true;
     } catch (e) {
-      print('Error al crear egreso: $e');
       return false;
     }
   }
@@ -101,7 +96,6 @@ class FinanceService {
       
       return (response as List).map((data) => ExpenseModel.fromJson(data)).toList();
     } catch (e) {
-      print('Error al obtener egresos mensuales: $e');
       return [];
     }
   }
@@ -112,14 +106,13 @@ class FinanceService {
     try {
       final response = await _supabase
           .from('payments')
-          .select('*, profiles:resident_id(name)')
+          .select('*, residents(profiles(name))')
           .eq('month', month)
           .eq('year', year)
           .eq('status', 'paid');
       
       return (response as List).map((data) => PaymentModel.fromJson(data)).toList();
     } catch (e) {
-      print('Error al obtener ingresos mensuales: $e');
       return [];
     }
   }
