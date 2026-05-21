@@ -24,8 +24,10 @@ class _ResidentVisitorCalendarScreenState extends State<ResidentVisitorCalendarS
     super.initState();
     _selectedDay = _focusedDay;
     Future.microtask(() {
+      if (!mounted) return;
       final provider = Provider.of<VisitorProvider>(context, listen: false);
       provider.loadVisitorsByDay(widget.residentId, _selectedDay!);
+      provider.loadAllVisitorsByResident(widget.residentId); // Load all for markers
       
       final adminProvider = Provider.of<AdminProvider>(context, listen: false);
       try {
@@ -33,7 +35,7 @@ class _ResidentVisitorCalendarScreenState extends State<ResidentVisitorCalendarS
       } catch (_) {
         _selectedUser = null;
       }
-      setState(() {});
+      if (mounted) setState(() {});
     });
   }
 
@@ -55,6 +57,11 @@ class _ResidentVisitorCalendarScreenState extends State<ResidentVisitorCalendarS
             lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            eventLoader: (day) {
+              return visitorProvider.allResidentVisitors.where((visitor) {
+                return isSameDay(visitor.date, day);
+              }).toList();
+            },
             availableCalendarFormats: const {CalendarFormat.month: 'Mes'},
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
@@ -72,6 +79,29 @@ class _ResidentVisitorCalendarScreenState extends State<ResidentVisitorCalendarS
                 color: Color(0xFF1B5E20),
                 shape: BoxShape.circle,
               ),
+              markerDecoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+            ),
+            calendarBuilders: CalendarBuilders(
+              markerBuilder: (context, date, events) {
+                if (events.isNotEmpty) {
+                  return Positioned(
+                    right: 1,
+                    bottom: 1,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  );
+                }
+                return null;
+              },
             ),
             headerStyle: const HeaderStyle(
               formatButtonVisible: false,

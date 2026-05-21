@@ -9,9 +9,11 @@ class VisitorProvider extends ChangeNotifier {
   final ResidentService _residentService = ResidentService();
   
   List<VisitorModel> _visitors = [];
+  List<VisitorModel> _allResidentVisitors = []; // New list for all visitors
   bool _isLoading = false;
 
   List<VisitorModel> get visitors => _visitors;
+  List<VisitorModel> get allResidentVisitors => _allResidentVisitors;
   bool get isLoading => _isLoading;
 
   Future<void> loadAllVisitorsByResident(String profileId) async {
@@ -21,9 +23,9 @@ class VisitorProvider extends ChangeNotifier {
     final resident = await _residentService.getResidentByUserId(profileId);
     
     if (resident != null && resident.id.isNotEmpty) {
-      _visitors = await _visitorService.getAllVisitorsByResident(resident.id);
+      _allResidentVisitors = await _visitorService.getAllVisitorsByResident(resident.id);
     } else {
-      _visitors = [];
+      _allResidentVisitors = [];
     }
     
     _isLoading = false;

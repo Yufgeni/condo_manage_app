@@ -6,7 +6,7 @@ class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
 
   UserModel? _currentUser;
-  bool _isLoading = false;
+  bool _isLoading = true; // Start as true to check session
   String? _errorMessage;
 
   UserModel? get currentUser => _currentUser;
@@ -14,6 +14,21 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   String get userRole => _currentUser?.role ?? '';
+
+  AuthProvider() {
+    checkSession();
+  }
+
+  Future<void> checkSession() async {
+    _isLoading = true;
+    notifyListeners();
+
+    final user = await _authService.getCurrentUser();
+    _currentUser = user;
+    
+    _isLoading = false;
+    notifyListeners();
+  }
 
   Future<bool> login(String email, String password) async {
     _isLoading = true;

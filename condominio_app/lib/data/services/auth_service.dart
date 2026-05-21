@@ -13,17 +13,43 @@ class AuthService {
       );
 
       if (response.user != null) {
-        final userData = await _supabase
-            .from('profiles')
-            .select()
-            .eq('id', response.user!.id)
-            .single();
-        return UserModel.fromJson(userData);
+        return await _getUserProfile(response.user!.id);
       }
       return null;
     } catch (e) {
       if (kDebugMode) {
         print('Error en login: $e');
+      }
+      return null;
+    }
+  }
+
+  Future<UserModel?> getCurrentUser() async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session != null && session.user != null) {
+        return await _getUserProfile(session.user.id);
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error al recuperar sesión: $e');
+      }
+      return null;
+    }
+  }
+
+  Future<UserModel?> _getUserProfile(String userId) async {
+    try {
+      final userData = await _supabase
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .single();
+      return UserModel.fromJson(userData);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error al obtener perfil: $e');
       }
       return null;
     }

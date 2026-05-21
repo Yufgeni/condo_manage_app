@@ -31,6 +31,11 @@ class MyApp extends StatelessWidget {
       routes: AppRoutes.routes,
       home: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
+          if (authProvider.isLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
           if (!authProvider.isAuthenticated) {
             return const LoginScreen();
           }
