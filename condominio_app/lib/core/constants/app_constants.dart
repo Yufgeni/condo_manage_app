@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String appName = 'Condominio App';
+  static const String appName = 'Privada Acacias';
 
   // Roles
   static const String roleAdmin = 'admin';

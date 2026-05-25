@@ -101,6 +101,15 @@ class FinanceService {
     }
   }
 
+  Future<bool> deleteExpense(String id) async {
+    try {
+      await _supabase.from('expenses').delete().eq('id', id);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // --- BALANCES (Reports) ---
 
   Future<List<PaymentModel>> getMonthlyIncomes(String month, int year) async {
@@ -115,6 +124,15 @@ class FinanceService {
       return (response as List).map((data) => PaymentModel.fromJson(data)).toList();
     } catch (e) {
       return [];
+    }
+  }
+
+  Future<bool> deletePayment(String id) async {
+    try {
+      await _supabase.from('payments').delete().eq('id', id);
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -146,6 +164,20 @@ class FinanceService {
       return true;
     } catch (e) {
       debugPrint('Error añadiendo concepto: $e. Asegúrate de que la tabla finance_concepts existe.');
+      return false;
+    }
+  }
+
+  Future<bool> deleteConcept(String name, String type) async {
+    try {
+      await _supabase
+          .from('finance_concepts')
+          .delete()
+          .eq('name', name)
+          .eq('type', type);
+      return true;
+    } catch (e) {
+      debugPrint('Error eliminando concepto: $e');
       return false;
     }
   }
@@ -192,7 +224,7 @@ class FinanceService {
 
       return totalIncomes - totalExpenses;
     } catch (e) {
-      print('Error calculating previous balance: $e');
+      debugPrint('Error calculating previous balance: $e');
       return 0.0;
     }
   }

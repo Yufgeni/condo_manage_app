@@ -21,8 +21,8 @@ class FinanceProvider extends ChangeNotifier {
   List<PaymentModel> get residentPayments => _residentPayments;
   List<PaymentModel> get monthlyIncomes => _monthlyIncomes;
   List<ExpenseModel> get monthlyExpenses => _monthlyExpenses;
-  List<String> get incomeConcepts => _incomeConcepts.isEmpty ? _defaultIncomeConcepts : _incomeConcepts;
-  List<String> get expenseConcepts => _expenseConcepts.isEmpty ? _defaultExpenseConcepts : _expenseConcepts;
+  List<String> get incomeConcepts => _incomeConcepts;
+  List<String> get expenseConcepts => _expenseConcepts;
   double get previousBalance => _previousBalance;
   bool get isLoading => _isLoading;
 
@@ -32,23 +32,6 @@ class FinanceProvider extends ChangeNotifier {
   ];
 
   final List<String> years = List.generate(27, (index) => (2024 + index).toString());
-
-  final List<String> _defaultExpenseConcepts = [
-    'Electricidad',
-    'Jardinería',
-    'Seguridad',
-    'Limpieza',
-    'Mantenimiento Elevadores',
-    'Agua',
-    'Otros'
-  ];
-
-  final List<String> _defaultIncomeConcepts = [
-    'Cuota mensual',
-    'Multa',
-    'Uso de amenidades',
-    'Otros'
-  ];
 
   Future<void> fetchConcepts() async {
     _isLoading = true;
@@ -64,6 +47,14 @@ class FinanceProvider extends ChangeNotifier {
     if (success) {
       await fetchConcepts();
     }
+  }
+
+  Future<bool> deleteConcept(String name, String type) async {
+    final success = await _financeService.deleteConcept(name, type);
+    if (success) {
+      await fetchConcepts();
+    }
+    return success;
   }
 
   Future<void> fetchPendingPayments() async {
@@ -139,6 +130,30 @@ class FinanceProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     final success = await _financeService.createExpense(expense);
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> deleteExpense(String expenseId, String month, String year) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _financeService.deleteExpense(expenseId);
+    if (success) {
+      await fetchMonthlyData(month, year);
+    }
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> deleteIncome(String paymentId, String month, String year) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _financeService.deletePayment(paymentId);
+    if (success) {
+      await fetchMonthlyData(month, year);
+    }
     _isLoading = false;
     notifyListeners();
     return success;

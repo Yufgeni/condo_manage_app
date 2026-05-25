@@ -82,6 +82,48 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     }
   }
 
+  void _confirmDeleteConcept(BuildContext context, String concept, String type) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar concepto'),
+        content: Text('¿Deseas eliminar "$concept" de la lista?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              Navigator.pop(dialogContext);
+              
+              final financeProvider = Provider.of<FinanceProvider>(context, listen: false);
+              final success = await financeProvider.deleteConcept(concept, type);
+              
+              if (success && mounted) {
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text('Concepto "$concept" eliminado exitosamente'),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+
+                await Future.delayed(const Duration(milliseconds: 1300));
+
+                if (mounted) {
+                  Navigator.of(context).popUntil((route) => route.isFirst || route is! PopupRoute);
+                  setState(() {
+                    _selectedConcept = null;
+                  });
+                }
+              }
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
@@ -124,11 +166,29 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(labelText: 'Concepto', border: OutlineInputBorder(), prefixIcon: Icon(Icons.receipt_long)),
-                  value: _selectedConcept,
+                  initialValue: _selectedConcept,
                   items: [
-                    ...financeProvider.expenseConcepts.map((c) => DropdownMenuItem(value: c, child: Text(c))),
+                    ...financeProvider.expenseConcepts.map((c) => DropdownMenuItem(
+                      value: c, 
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text(c, overflow: TextOverflow.ellipsis)),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                            onPressed: () => _confirmDeleteConcept(context, c, 'expense'),
+                          ),
+                        ],
+                      ),
+                    )),
                     const DropdownMenuItem(value: 'ADD_NEW', child: Text('+ Añadir nuevo concepto')),
                   ],
+                  selectedItemBuilder: (BuildContext context) {
+                    return [
+                      ...financeProvider.expenseConcepts.map((c) => Text(c, overflow: TextOverflow.ellipsis)),
+                      const Text('+ Añadir nuevo concepto'),
+                    ];
+                  },
                   onChanged: (v) {
                     setState(() {
                       _selectedConcept = v;

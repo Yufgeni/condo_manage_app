@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/providers/finance_provider.dart';
 import '../../widgets/admin/admin_drawer.dart';
+import 'manage_movements_screen.dart';
 
 class FinanceScreen extends StatelessWidget {
   const FinanceScreen({super.key});
@@ -18,35 +19,36 @@ class FinanceScreen extends StatelessWidget {
         ),
       ),
       drawer: const AdminDrawer(),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 1,
-                childAspectRatio: 2.5,
-                mainAxisSpacing: 16,
-                children: [
-                  _FinanceCard(
-                    title: 'Ingresos',
-                    subtitle: 'Registro de pagos de residentes',
-                    icon: Icons.add_chart,
-                    color: Colors.green,
-                    onTap: () => _showIngresosMenu(context),
-                  ),
-                  _FinanceCard(
-                    title: 'Egresos',
-                    subtitle: 'Registro de gastos administrativos',
-                    icon: Icons.analytics_outlined,
-                    color: Colors.red,
-                    onTap: () => Navigator.pushNamed(context, AppConstants.routeExpense),
-                  ),
-                ],
-              ),
+        children: [
+          _FinanceCard(
+            title: 'Ingresos',
+            subtitle: 'Registro de pagos de residentes',
+            icon: Icons.add_chart,
+            color: Colors.green,
+            onTap: () => _showIngresosMenu(context),
+          ),
+          const SizedBox(height: 16),
+          _FinanceCard(
+            title: 'Egresos',
+            subtitle: 'Registro de gastos administrativos',
+            icon: Icons.analytics_outlined,
+            color: Colors.red,
+            onTap: () => Navigator.pushNamed(context, AppConstants.routeExpense),
+          ),
+          const SizedBox(height: 16),
+          _FinanceCard(
+            title: 'Gestionar Movimientos',
+            subtitle: 'Corregir ingresos y egresos',
+            icon: Icons.settings_backup_restore,
+            color: Colors.orange,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ManageMovementsScreen()),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
