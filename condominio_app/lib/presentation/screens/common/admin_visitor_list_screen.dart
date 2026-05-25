@@ -61,7 +61,9 @@ class _AdminVisitorListScreenState extends State<AdminVisitorListScreen> {
                             : null,
                         ),
                         title: Text(
-                          user.fullName,
+                          user.role == AppConstants.roleResident && user.unitNumber != null
+                              ? '${user.fullName} (Casa ${user.unitNumber})'
+                              : user.fullName,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         trailing: const Icon(Icons.calendar_month, color: Colors.blueGrey),

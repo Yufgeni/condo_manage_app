@@ -30,6 +30,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ResidentProvider>(context, listen: false).fetchAllResidents();
+      Provider.of<FinanceProvider>(context, listen: false).fetchConcepts();
     });
   }
 
@@ -44,7 +45,13 @@ class _IncomeScreenState extends State<IncomeScreen> {
 
     final financeProvider = Provider.of<FinanceProvider>(context, listen: false);
 
-    final concept = _showCustomConcept ? _customConceptController.text : _selectedConcept!;
+    String concept;
+    if (_showCustomConcept) {
+      concept = _customConceptController.text.trim();
+      await financeProvider.addConcept(concept, 'income');
+    } else {
+      concept = _selectedConcept!;
+    }
 
     final income = IncomeModel(
       id: '',

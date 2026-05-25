@@ -129,7 +129,24 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
                     return Card(
                       child: ListTile(
                         leading: const CircleAvatar(child: Icon(Icons.person)),
-                        title: Text(r.fullName),
+                        title: Row(
+                          children: [
+                            Expanded(child: Text(r.fullName)),
+                            if (r.unitNumber != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.blue.shade200),
+                                ),
+                                child: Text(
+                                  'Casa ${r.unitNumber}',
+                                  style: TextStyle(fontSize: 12, color: Colors.blue.shade800, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                          ],
+                        ),
                         subtitle: Text(r.email),
                         trailing: const Icon(Icons.info_outline),
                         onTap: () => _showResidentInfo(context, r),

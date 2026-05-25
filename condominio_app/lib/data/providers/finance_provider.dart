@@ -12,12 +12,18 @@ class FinanceProvider extends ChangeNotifier {
   List<PaymentModel> _residentPayments = [];
   List<PaymentModel> _monthlyIncomes = [];
   List<ExpenseModel> _monthlyExpenses = [];
+  List<String> _incomeConcepts = [];
+  List<String> _expenseConcepts = [];
+  double _previousBalance = 0;
   bool _isLoading = false;
 
   List<PaymentModel> get pendingPayments => _pendingPayments;
   List<PaymentModel> get residentPayments => _residentPayments;
   List<PaymentModel> get monthlyIncomes => _monthlyIncomes;
   List<ExpenseModel> get monthlyExpenses => _monthlyExpenses;
+  List<String> get incomeConcepts => _incomeConcepts.isEmpty ? _defaultIncomeConcepts : _incomeConcepts;
+  List<String> get expenseConcepts => _expenseConcepts.isEmpty ? _defaultExpenseConcepts : _expenseConcepts;
+  double get previousBalance => _previousBalance;
   bool get isLoading => _isLoading;
 
   final List<String> months = [
@@ -27,7 +33,7 @@ class FinanceProvider extends ChangeNotifier {
 
   final List<String> years = List.generate(27, (index) => (2024 + index).toString());
 
-  final List<String> expenseConcepts = [
+  final List<String> _defaultExpenseConcepts = [
     'Electricidad',
     'Jardinería',
     'Seguridad',
@@ -37,12 +43,28 @@ class FinanceProvider extends ChangeNotifier {
     'Otros'
   ];
 
-  final List<String> incomeConcepts = [
+  final List<String> _defaultIncomeConcepts = [
     'Cuota mensual',
     'Multa',
     'Uso de amenidades',
     'Otros'
   ];
+
+  Future<void> fetchConcepts() async {
+    _isLoading = true;
+    notifyListeners();
+    _incomeConcepts = await _financeService.getConcepts('income');
+    _expenseConcepts = await _financeService.getConcepts('expense');
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> addConcept(String name, String type) async {
+    final success = await _financeService.addConcept(name, type);
+    if (success) {
+      await fetchConcepts();
+    }
+  }
 
   Future<void> fetchPendingPayments() async {
     _isLoading = true;
@@ -128,6 +150,7 @@ class FinanceProvider extends ChangeNotifier {
     final yearInt = int.tryParse(year) ?? DateTime.now().year;
     _monthlyIncomes = await _financeService.getMonthlyIncomes(month, yearInt);
     _monthlyExpenses = await _financeService.getMonthlyExpenses(month, yearInt);
+    _previousBalance = await _financeService.getPreviousBalance(month, yearInt);
     _isLoading = false;
     notifyListeners();
   }

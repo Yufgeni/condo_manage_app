@@ -23,6 +23,14 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
   bool _showCustomConcept = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<FinanceProvider>(context, listen: false).fetchConcepts();
+    });
+  }
+
+  @override
   void dispose() {
     _customConceptController.dispose();
     _amountController.dispose();
@@ -40,7 +48,13 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
 
     final financeProvider = Provider.of<FinanceProvider>(context, listen: false);
 
-    final concept = _showCustomConcept ? _customConceptController.text : _selectedConcept!;
+    String concept;
+    if (_showCustomConcept) {
+      concept = _customConceptController.text.trim();
+      await financeProvider.addConcept(concept, 'expense');
+    } else {
+      concept = _selectedConcept!;
+    }
 
     final expense = ExpenseModel(
       id: '',

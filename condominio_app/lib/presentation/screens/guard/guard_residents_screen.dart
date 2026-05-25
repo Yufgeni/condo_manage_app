@@ -50,6 +50,8 @@ class _GuardResidentsScreenState extends State<GuardResidentsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _detailRow(Icons.person, 'Nombre', userProfile.fullName),
+              if (userProfile.unitNumber != null)
+                _detailRow(Icons.home, 'Casa', userProfile.unitNumber!),
               _detailRow(Icons.phone, 'Teléfono', userProfile.phone ?? 'No disponible'),
               const Divider(height: 32),
               const Text('Vehículos registrados:', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -135,7 +137,9 @@ class _GuardResidentsScreenState extends State<GuardResidentsScreen> {
                             : null,
                         ),
                         title: Text(
-                          user.fullName,
+                          user.role == AppConstants.roleResident && user.unitNumber != null
+                              ? '${user.fullName} (Casa ${user.unitNumber})'
+                              : user.fullName,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),

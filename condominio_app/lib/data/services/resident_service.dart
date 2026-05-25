@@ -71,9 +71,35 @@ class ResidentService {
   Future<bool> updateProfilePhone(String profileId, String phone) async {
     try {
       await _supabase.from('profiles').update({'phone': phone}).eq('id', profileId);
+      // También intentamos actualizar en la tabla residents si existe
+      await _supabase.from('residents').update({'phone': phone}).eq('profile_id', profileId);
       return true;
     } catch (e) {
       print('Error al actualizar teléfono: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateResidentUnitNumber(String profileId, String unitNumber) async {
+    try {
+      // Intentamos actualizar primero
+      final response = await _supabase
+          .from('residents')
+          .update({'unit_number': unitNumber})
+          .eq('profile_id', profileId)
+          .select();
+
+      // Si no se actualizó nada (lista vacía), significa que el registro no existe
+      if ((response as List).isEmpty) {
+        await _supabase.from('residents').insert({
+          'profile_id': profileId,
+          'unit_number': unitNumber,
+        });
+      }
+
+      return true;
+    } catch (e) {
+      print('Error al actualizar número de casa: $e');
       return false;
     }
   }

@@ -44,6 +44,33 @@ class ResidentProvider extends ChangeNotifier {
     return success;
   }
 
+  Future<bool> updateResidentData({String? phone, String? unitNumber}) async {
+    if (_resident == null) return false;
+    _isLoading = true;
+    notifyListeners();
+
+    bool phoneSuccess = true;
+    bool unitSuccess = true;
+
+    if (phone != null && phone != _resident!.phone) {
+      phoneSuccess = await _residentService.updateProfilePhone(_resident!.profileId, phone);
+      if (phoneSuccess) {
+        _resident = _resident!.copyWith(phone: phone);
+      }
+    }
+
+    if (unitNumber != null && unitNumber != _resident!.unitNumber) {
+      unitSuccess = await _residentService.updateResidentUnitNumber(_resident!.profileId, unitNumber);
+      if (unitSuccess) {
+        _resident = _resident!.copyWith(unitNumber: unitNumber);
+      }
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return phoneSuccess && unitSuccess;
+  }
+
   Future<bool> addVehicle(CarInfo car) async {
     if (_resident == null) return false;
     _isLoading = true;

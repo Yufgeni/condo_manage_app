@@ -4,6 +4,7 @@ import '../models/report_model.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
 import '../services/report_service.dart';
+import '../services/resident_service.dart';
 
 class AdminProvider extends ChangeNotifier {
   final UserService _userService = UserService();
@@ -93,6 +94,7 @@ class AdminProvider extends ChangeNotifier {
     DateTime? birthDate,
     int? age,
     String? phone,
+    String? unitNumber,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -107,6 +109,7 @@ class AdminProvider extends ChangeNotifier {
       birthDate: birthDate ?? DateTime.now(),
       age: age ?? 0,
       phone: phone,
+      unitNumber: unitNumber,
     );
 
     if (!success) {
@@ -163,16 +166,28 @@ class AdminProvider extends ChangeNotifier {
     if (success) {
       final index = _users.indexWhere((u) => u.id == userId);
       if (index != -1) {
-        _users[index] = UserModel(
-          id: _users[index].id,
-          email: _users[index].email,
-          name: _users[index].name,
-          lastName: _users[index].lastName,
-          role: _users[index].role,
-          photoUrl: _users[index].photoUrl,
-          isOnDuty: isOnDuty,
-          phone: _users[index].phone,
-        );
+        _users[index] = _users[index].copyWith(isOnDuty: isOnDuty);
+      }
+    }
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> setGuardOnDuty(String userId) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _userService.setGuardOnDuty(userId);
+    if (success) {
+      // Actualizamos localmente: todos false, excepto el indicado
+      for (int i = 0; i < _users.length; i++) {
+        if (_users[i].role == 'guard') {
+          if (_users[i].id == userId) {
+            _users[i] = _users[i].copyWith(isOnDuty: true);
+          } else if (_users[i].isOnDuty) {
+            _users[i] = _users[i].copyWith(isOnDuty: false);
+          }
+        }
       }
     }
     _isLoading = false;
@@ -184,6 +199,33 @@ class AdminProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     final success = await _userService.adminUpdateUserPassword(userId, newPassword);
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> updateUnitNumber(String profileId, String unitNumber) async {
+    _isLoading = true;
+    notifyListeners();
+    // Reutilizamos el servicio de residente ya que la tabla es la misma
+    final ResidentService residentService = ResidentService();
+    final success = await residentService.updateResidentUnitNumber(profileId, unitNumber);
+    if (success) {
+      final index = _users.indexWhere((u) => u.id == profileId);
+      if (index != -1) {
+        _users[index] = UserModel(
+          id: _users[index].id,
+          email: _users[index].email,
+          name: _users[index].name,
+          lastName: _users[index].lastName,
+          role: _users[index].role,
+          photoUrl: _users[index].photoUrl,
+          isOnDuty: _users[index].isOnDuty,
+          phone: _users[index].phone,
+          unitNumber: unitNumber,
+        );
+      }
+    }
     _isLoading = false;
     notifyListeners();
     return success;

@@ -145,6 +145,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _unitNumberController = TextEditingController();
   String _selectedRole = AppConstants.roleResident;
 
   @override
@@ -154,6 +155,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
     _emailController.dispose();
     _passwordController.dispose();
     _phoneController.dispose();
+    _unitNumberController.dispose();
     super.dispose();
   }
 
@@ -163,6 +165,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
     _emailController.clear();
     _passwordController.clear();
     _phoneController.clear();
+    _unitNumberController.clear();
     setState(() {
       _selectedRole = AppConstants.roleResident;
     });
@@ -212,7 +215,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              initialValue: _selectedRole,
+              value: _selectedRole,
               decoration: const InputDecoration(
                 labelText: 'Perfil',
                 border: OutlineInputBorder(),
@@ -224,6 +227,17 @@ class _NewProfileTabState extends State<_NewProfileTab> {
               ],
               onChanged: (v) => setState(() => _selectedRole = v ?? AppConstants.roleResident),
             ),
+            if (_selectedRole == AppConstants.roleResident) ...[
+              const SizedBox(height: 12),
+              CustomTextField(
+                label: 'Número de Casa',
+                controller: _unitNumberController,
+                hint: 'Ej. 212-A o S/N',
+                validator: (v) => (_selectedRole == AppConstants.roleResident && (v == null || v.isEmpty)) 
+                  ? 'El número de casa es requerido para residentes' 
+                  : null,
+              ),
+            ],
             const SizedBox(height: 24),
             CustomButton(
               text: 'Crear Perfil',
@@ -254,6 +268,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
                   birthDate: DateTime.now(), 
                   age: 0, 
                   phone: _phoneController.text.trim(),
+                  unitNumber: _selectedRole == AppConstants.roleResident ? _unitNumberController.text.trim() : null,
                 );
                 if (success && mounted) {
                   UIUtils.showSnackBar(context, 'Perfil creado exitosamente', isError: false);
@@ -307,17 +322,20 @@ class _UserCardState extends State<_UserCard> {
   bool _isAdminCheck = false;
   bool _isOnDutyCheck = false;
   final _newPasswordController = TextEditingController();
+  final _unitNumberController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _isOnDutyCheck = widget.user.isOnDuty;
     _isAdminCheck = widget.user.role == AppConstants.roleAdmin;
+    _unitNumberController.text = widget.user.unitNumber ?? '';
   }
 
   @override
   void dispose() {
     _newPasswordController.dispose();
+    _unitNumberController.dispose();
     super.dispose();
   }
 
@@ -345,6 +363,11 @@ class _UserCardState extends State<_UserCard> {
                         children: [
                           Text('Perfil: ${widget.user.role}',
                               style: TextStyle(color: Colors.grey[600])),
+                          if (widget.user.role == AppConstants.roleResident && widget.user.unitNumber != null) ...[
+                            const SizedBox(width: 8),
+                            Text('| Casa: ${widget.user.unitNumber}',
+                                style: TextStyle(color: Colors.grey[600])),
+                          ],
                           if (widget.user.role == AppConstants.roleGuard) ...[
                             const SizedBox(width: 8),
                             Container(
@@ -400,6 +423,14 @@ class _UserCardState extends State<_UserCard> {
                   value: _isOnDutyCheck,
                   onChanged: (v) => setState(() => _isOnDutyCheck = v!),
                 ),
+              if (widget.user.role == AppConstants.roleResident) ...[
+                const SizedBox(height: 8),
+                CustomTextField(
+                  label: 'Número de Casa',
+                  controller: _unitNumberController,
+                  hint: 'Modificar número de casa',
+                ),
+              ],
               const SizedBox(height: 8),
               CustomTextField(
                 label: 'Actualizar Contraseña',
@@ -484,6 +515,11 @@ class _UserCardState extends State<_UserCard> {
     // Duty Status Logic (Guard)
     if (widget.user.role == AppConstants.roleGuard) {
       await adminProvider.updateDutyStatus(widget.user.id, _isOnDutyCheck);
+    }
+
+    // Unit Number Update Logic (Resident)
+    if (widget.user.role == AppConstants.roleResident && _unitNumberController.text != widget.user.unitNumber) {
+      await adminProvider.updateUnitNumber(widget.user.id, _unitNumberController.text.trim());
     }
 
     setState(() => _isEditing = false);

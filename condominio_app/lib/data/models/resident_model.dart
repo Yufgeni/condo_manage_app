@@ -48,6 +48,7 @@ class ResidentModel {
 
   ResidentModel copyWith({
     String? phone,
+    String? unitNumber,
     List<CarInfo>? cars,
     String? photoUrl,
   }) {
@@ -57,7 +58,7 @@ class ResidentModel {
       name: name,
       email: email,
       phone: phone ?? this.phone,
-      unitNumber: unitNumber,
+      unitNumber: unitNumber ?? this.unitNumber,
       cars: cars ?? this.cars,
       photoUrl: photoUrl ?? this.photoUrl,
     );

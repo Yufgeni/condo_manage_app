@@ -33,7 +33,9 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
 
   double get _totalIncomes => Provider.of<FinanceProvider>(context, listen: false).monthlyIncomes.fold(0, (sum, item) => sum + item.amount);
   double get _totalExpenses => Provider.of<FinanceProvider>(context, listen: false).monthlyExpenses.fold(0, (sum, item) => sum + item.amount);
+  double get _previousBalance => Provider.of<FinanceProvider>(context, listen: false).previousBalance;
   double get _balance => _totalIncomes - _totalExpenses;
+  double get _finalBalance => _previousBalance + _balance;
 
   Future<void> _generateAndSharePDF() async {
     if (_selectedMonth == null || _selectedYear == null) {
@@ -48,101 +50,203 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
       final pdf = pw.Document();
 
       pdf.addPage(
-        pw.Page(
+        pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
-          build: (pw.Context context) {
+          margin: const pw.EdgeInsets.all(32),
+          header: (pw.Context context) {
             return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Header(
-                  level: 0,
-                  child: pw.Text('Reporte Mensual de Finanzas - Condominio App',
-                      style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('PRIVADA ACACIAS',
+                            style: pw.TextStyle(
+                              fontSize: 24,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.blue900,
+                            )),
+                        pw.Text('Reporte Financiero Mensual',
+                            style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700)),
+                      ],
+                    ),
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Text('Periodo:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text('$_selectedMonth $_selectedYear', style: const pw.TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                  ],
                 ),
                 pw.SizedBox(height: 10),
-                pw.Text('Periodo: $_selectedMonth $_selectedYear'),
+                pw.Divider(thickness: 2, color: PdfColors.blue900),
                 pw.SizedBox(height: 20),
-                pw.Text('INGRESOS (PAGOS APROBADOS)', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              ],
+            );
+          },
+          footer: (pw.Context context) {
+            return pw.Column(
+              children: [
                 pw.Divider(),
-                ...financeProvider.monthlyIncomes.map((i) => pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text('${i.residentName ?? 'Residente'} - ${i.description ?? 'Cuota'}'),
-                    pw.Text('\$${i.amount.toStringAsFixed(2)}'),
-                  ],
-                )),
-                pw.SizedBox(height: 10),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('Total Ingresos:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('\$${_totalIncomes.toStringAsFixed(2)}',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Generado el ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}'),
+                    pw.Text('Página ${context.pageNumber} de ${context.pagesCount}'),
                   ],
-                ),
-                pw.SizedBox(height: 30),
-                pw.Text('EGRESOS', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                pw.Divider(),
-                ...financeProvider.monthlyExpenses.map((e) => pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(e.concept),
-                    pw.Text('\$${e.amount.toStringAsFixed(2)}'),
-                  ],
-                )),
-                pw.SizedBox(height: 10),
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text('Total Egresos:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('\$${_totalExpenses.toStringAsFixed(2)}',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  ],
-                ),
-                pw.SizedBox(height: 30),
-                pw.Container(
-                  padding: const pw.EdgeInsets.all(10),
-                  decoration: const pw.BoxDecoration(
-                    color: PdfColors.grey200,
-                    borderRadius: pw.BorderRadius.all(pw.Radius.circular(5)),
-                  ),
-                  child: pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: [
-                      pw.Text('BALANCE FINAL:',
-                          style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
-                      pw.Text('\$${_balance.toStringAsFixed(2)}',
-                          style: pw.TextStyle(
-                            fontSize: 16,
-                            fontWeight: pw.FontWeight.bold,
-                            color: _balance >= 0 ? PdfColors.green : PdfColors.red,
-                          )),
-                    ],
-                  ),
-                ),
-                pw.Footer(
-                  margin: const pw.EdgeInsets.only(top: 50),
-                  trailing: pw.Text('Generado el ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}'),
                 ),
               ],
             );
+          },
+          build: (pw.Context context) {
+            return [
+              // --- RESUMEN EJECUTIVO ---
+              pw.Text('Resumen Ejecutivo', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 12),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(16),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey300),
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                ),
+                child: pw.Column(
+                  children: [
+                    _pdfSummaryRow('Saldo Mes Anterior:', _previousBalance, isImportant: true),
+                    pw.SizedBox(height: 8),
+                    _pdfSummaryRow('(+) Ingresos del Mes:', _totalIncomes, color: PdfColors.green),
+                    _pdfSummaryRow('(-) Egresos del Mes:', _totalExpenses, color: PdfColors.red),
+                    pw.Divider(),
+                    _pdfSummaryRow('SALDO FINAL ACUMULADO:', _finalBalance, 
+                        isBold: true, 
+                        fontSize: 16,
+                        color: _finalBalance >= 0 ? PdfColors.blue900 : PdfColors.red900),
+                  ],
+                ),
+              ),
+
+              pw.SizedBox(height: 30),
+
+              // --- DETALLE DE INGRESOS ---
+              pw.Text('Detalle de Ingresos', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 8),
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey300),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(3),
+                  1: const pw.FlexColumnWidth(1),
+                },
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.blue50),
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text('Concepto / Residente', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text('Monto', style: pw.TextStyle(fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.right),
+                      ),
+                    ],
+                  ),
+                  ...financeProvider.monthlyIncomes.map((i) => pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text('${i.residentName ?? 'Residente'} - ${i.description ?? 'Cuota'}'),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text('\$${i.amount.toStringAsFixed(2)}', textAlign: pw.TextAlign.right),
+                      ),
+                    ],
+                  )),
+                ],
+              ),
+
+              pw.SizedBox(height: 30),
+
+              // --- DETALLE DE EGRESOS ---
+              pw.Text('Detalle de Egresos', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 8),
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey300),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(3),
+                  1: const pw.FlexColumnWidth(1),
+                },
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.red50),
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text('Concepto', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text('Monto', style: pw.TextStyle(fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.right),
+                      ),
+                    ],
+                  ),
+                  ...financeProvider.monthlyExpenses.map((e) => pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text(e.concept),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text('\$${e.amount.toStringAsFixed(2)}', textAlign: pw.TextAlign.right),
+                      ),
+                    ],
+                  )),
+                ],
+              ),
+            ];
           },
         ),
       );
 
       final output = await getTemporaryDirectory();
-      final file = File("${output.path}/Reporte_${_selectedMonth}_$_selectedYear.pdf");
+      final file = File("${output.path}/Reporte_Financiero_Acacias_${_selectedMonth}_$_selectedYear.pdf");
       await file.writeAsBytes(await pdf.save());
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'Hola, te comparto el reporte financiero de $_selectedMonth $_selectedYear.',
+        text: 'Hola, te comparto el reporte financiero de Privada Acacias para el periodo $_selectedMonth $_selectedYear.',
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al generar PDF: $e')));
+      debugPrint('Error al generar PDF: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al generar PDF: $e')));
+      }
     } finally {
-      setState(() => _isGenerating = false);
+      if (mounted) setState(() => _isGenerating = false);
     }
+  }
+
+  pw.Widget _pdfSummaryRow(String label, double amount, {PdfColor? color, bool isImportant = false, bool isBold = false, double fontSize = 12}) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 4),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(label, style: pw.TextStyle(
+            fontSize: fontSize,
+            fontWeight: isBold || isImportant ? pw.FontWeight.bold : pw.FontWeight.normal,
+          )),
+          pw.Text('\$${amount.toStringAsFixed(2)}', style: pw.TextStyle(
+            fontSize: fontSize,
+            fontWeight: pw.FontWeight.bold,
+            color: color ?? PdfColors.black,
+          )),
+        ],
+      ),
+    );
   }
 
   @override
@@ -221,11 +325,14 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            _buildSummaryRow('Ingresos Totales', _totalIncomes, Colors.green),
-            const SizedBox(height: 12),
-            _buildSummaryRow('Egresos Totales', _totalExpenses, Colors.red),
+            _buildSummaryRow('Saldo Mes Anterior', _previousBalance, Colors.blueGrey),
+            const SizedBox(height: 8),
+            _buildSummaryRow('Ingresos del Mes', _totalIncomes, Colors.green),
+            _buildSummaryRow('Egresos del Mes', _totalExpenses, Colors.red),
             const Divider(height: 32),
-            _buildSummaryRow('Balance Neto', _balance, _balance >= 0 ? Colors.blue : Colors.red, isTotal: true),
+            _buildSummaryRow('Saldo Final Acumulado', _finalBalance, 
+                _finalBalance >= 0 ? Colors.blue : Colors.red, 
+                isTotal: true),
           ],
         ),
       ),
@@ -236,13 +343,17 @@ class _ViewReportsScreenState extends State<ViewReportsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: isTotal ? 18 : 16,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: isTotal ? 18 : 16,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
+        const SizedBox(width: 8),
         Text(
           '\$${amount.toStringAsFixed(2)}',
           style: TextStyle(

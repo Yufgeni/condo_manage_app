@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/payment_model.dart';
 import '../models/expense_model.dart';
@@ -114,6 +115,85 @@ class FinanceService {
       return (response as List).map((data) => PaymentModel.fromJson(data)).toList();
     } catch (e) {
       return [];
+    }
+  }
+
+  // --- CONCEPTOS (Concepts) ---
+
+  Future<List<String>> getConcepts(String type) async {
+    try {
+      final response = await _supabase
+          .from('finance_concepts')
+          .select('name')
+          .eq('type', type)
+          .order('name');
+      
+      return (response as List).map((c) => c['name'] as String).toList();
+    } catch (e) {
+      // Si la tabla no existe o hay error, fallamos silenciosamente devolviendo lista vacía
+      // para que el Provider use los valores por defecto.
+      debugPrint('Nota: La tabla finance_concepts no respondió: $e');
+      return [];
+    }
+  }
+
+  Future<bool> addConcept(String name, String type) async {
+    try {
+      await _supabase.from('finance_concepts').upsert({
+        'name': name,
+        'type': type,
+      });
+      return true;
+    } catch (e) {
+      debugPrint('Error añadiendo concepto: $e. Asegúrate de que la tabla finance_concepts existe.');
+      return false;
+    }
+  }
+
+  Future<double> getPreviousBalance(String month, int year) async {
+    try {
+      // Definimos el orden cronológico de los meses para el filtro
+      final monthsList = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      final currentMonthIndex = monthsList.indexOf(month);
+
+      // 1. Obtener todos los ingresos pagados previos
+      final paymentsResponse = await _supabase
+          .from('payments')
+          .select('amount, month, year')
+          .eq('status', 'paid');
+      
+      double totalIncomes = 0;
+      for (var p in paymentsResponse as List) {
+        final pYear = p['year'] as int;
+        final pMonthIndex = monthsList.indexOf(p['month']);
+        
+        if (pYear < year || (pYear == year && pMonthIndex < currentMonthIndex)) {
+          totalIncomes += (p['amount'] as num).toDouble();
+        }
+      }
+
+      // 2. Obtener todos los egresos previos
+      final expensesResponse = await _supabase
+          .from('expenses')
+          .select('amount, month, year');
+
+      double totalExpenses = 0;
+      for (var e in expensesResponse as List) {
+        final eYear = e['year'] as int;
+        final eMonthIndex = monthsList.indexOf(e['month']);
+
+        if (eYear < year || (eYear == year && eMonthIndex < currentMonthIndex)) {
+          totalExpenses += (e['amount'] as num).toDouble();
+        }
+      }
+
+      return totalIncomes - totalExpenses;
+    } catch (e) {
+      print('Error calculating previous balance: $e');
+      return 0.0;
     }
   }
 }

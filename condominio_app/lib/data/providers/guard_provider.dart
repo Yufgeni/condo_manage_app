@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:async';
 import '../models/user_model.dart';
 import '../models/report_model.dart';
 import '../services/user_service.dart';
@@ -13,11 +14,18 @@ class GuardProvider extends ChangeNotifier {
   UserModel? _guardOnDuty;
   final List<ReportModel> _myReports = [];
   bool _isLoading = false;
+  StreamSubscription<UserModel?>? _guardOnDutySubscription;
 
   UserModel? get guard => _guard;
   UserModel? get guardOnDuty => _guardOnDuty;
   List<ReportModel> get myReports => _myReports;
   bool get isLoading => _isLoading;
+
+  @override
+  void dispose() {
+    _guardOnDutySubscription?.cancel();
+    super.dispose();
+  }
 
   Future<void> loadGuardData(String userId) async {
     _isLoading = true;
@@ -33,6 +41,14 @@ class GuardProvider extends ChangeNotifier {
     _guardOnDuty = await _userService.getGuardOnDuty();
     _isLoading = false;
     notifyListeners();
+  }
+
+  void listenToGuardOnDuty() {
+    _guardOnDutySubscription?.cancel();
+    _guardOnDutySubscription = _userService.getGuardOnDutyStream().listen((guard) {
+      _guardOnDuty = guard;
+      notifyListeners();
+    });
   }
 
   Future<void> fetchMyReports(String authorId) async {

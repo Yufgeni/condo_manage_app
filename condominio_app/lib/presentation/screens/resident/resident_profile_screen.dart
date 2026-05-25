@@ -100,12 +100,14 @@ class _MyDataTab extends StatefulWidget {
 
 class _MyDataTabState extends State<_MyDataTab> {
   final _phoneController = TextEditingController();
+  final _unitNumberController = TextEditingController();
   bool _isAddingVehicle = false;
   bool _dataInitialized = false;
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _unitNumberController.dispose();
     super.dispose();
   }
 
@@ -131,13 +133,15 @@ class _MyDataTabState extends State<_MyDataTab> {
 
     final provider = Provider.of<ResidentProvider>(context, listen: false);
     
-    bool phoneSuccess = await provider.updatePhone(_phoneController.text.trim());
+    bool success = await provider.updateResidentData(
+      phone: _phoneController.text.trim(),
+    );
 
     if (mounted) {
       UIUtils.showSnackBar(
         context, 
-        phoneSuccess ? 'Datos actualizados correctamente' : 'Error al actualizar datos',
-        isError: !phoneSuccess
+        success ? 'Datos actualizados correctamente' : 'Error al actualizar datos',
+        isError: !success
       );
     }
   }
@@ -149,6 +153,7 @@ class _MyDataTabState extends State<_MyDataTab> {
 
     if (resident != null && !_dataInitialized) {
       _phoneController.text = resident.phone;
+      _unitNumberController.text = resident.unitNumber;
       _dataInitialized = true;
     }
 
@@ -165,6 +170,14 @@ class _MyDataTabState extends State<_MyDataTab> {
             controller: _phoneController,
             keyboardType: TextInputType.phone,
             prefixIcon: const Icon(Icons.phone),
+          ),
+          const SizedBox(height: 12),
+          CustomTextField(
+            label: 'Número de Casa',
+            controller: _unitNumberController,
+            prefixIcon: const Icon(Icons.home),
+            enabled: false, // Deshabilitado para que solo el admin lo cambie
+            hint: 'Ej. 212-A',
           ),
           const SizedBox(height: 32),
           Row(

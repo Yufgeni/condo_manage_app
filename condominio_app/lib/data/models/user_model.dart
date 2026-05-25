@@ -7,6 +7,7 @@ class UserModel {
   final String? photoUrl;
   final bool isOnDuty;
   final String? phone;
+  final String? unitNumber;
 
   UserModel({
     required this.id,
@@ -17,6 +18,7 @@ class UserModel {
     this.photoUrl,
     this.isOnDuty = false,
     this.phone,
+    this.unitNumber,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class UserModel {
       photoUrl: json['photo_url'],
       isOnDuty: json['is_on_duty'] ?? false,
       phone: json['phone'],
+      unitNumber: json['residents']?['unit_number']?.toString() ?? json['unit_number']?.toString(),
     );
   }
 
@@ -41,7 +44,32 @@ class UserModel {
         'photo_url': photoUrl,
         'is_on_duty': isOnDuty,
         'phone': phone,
+        'unit_number': unitNumber,
       };
+
+  UserModel copyWith({
+    String? id,
+    String? email,
+    String? name,
+    String? lastName,
+    String? role,
+    String? photoUrl,
+    bool? isOnDuty,
+    String? phone,
+    String? unitNumber,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      lastName: lastName ?? this.lastName,
+      role: role ?? this.role,
+      photoUrl: photoUrl ?? this.photoUrl,
+      isOnDuty: isOnDuty ?? this.isOnDuty,
+      phone: phone ?? this.phone,
+      unitNumber: unitNumber ?? this.unitNumber,
+    );
+  }
 
   String get fullName => '$name $lastName';
 

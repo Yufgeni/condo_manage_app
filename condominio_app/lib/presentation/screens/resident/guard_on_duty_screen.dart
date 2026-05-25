@@ -13,8 +13,11 @@ class _GuardOnDutyScreenState extends State<GuardOnDutyScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() =>
-        Provider.of<GuardProvider>(context, listen: false).fetchGuardOnDuty());
+    final provider = Provider.of<GuardProvider>(context, listen: false);
+    Future.microtask(() {
+      provider.fetchGuardOnDuty();
+      provider.listenToGuardOnDuty();
+    });
   }
 
   @override
