@@ -147,6 +147,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
   final _phoneController = TextEditingController();
   final _unitNumberController = TextEditingController();
   String _selectedRole = AppConstants.roleResident;
+  bool _livesInCondo = true;
 
   @override
   void dispose() {
@@ -168,6 +169,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
     _unitNumberController.clear();
     setState(() {
       _selectedRole = AppConstants.roleResident;
+      _livesInCondo = true;
     });
   }
 
@@ -227,14 +229,22 @@ class _NewProfileTabState extends State<_NewProfileTab> {
               ],
               onChanged: (v) => setState(() => _selectedRole = v ?? AppConstants.roleResident),
             ),
-            if (_selectedRole == AppConstants.roleResident) ...[
+            if (_selectedRole != AppConstants.roleGuard) ...[
+              const SizedBox(height: 12),
+              SwitchListTile(
+                title: const Text('¿Vive en el condominio?'),
+                value: _livesInCondo,
+                onChanged: (v) => setState(() => _livesInCondo = v),
+              ),
+            ],
+            if (_selectedRole == AppConstants.roleResident || (_selectedRole == AppConstants.roleAdmin && _livesInCondo)) ...[
               const SizedBox(height: 12),
               CustomTextField(
                 label: 'Número de Casa',
                 controller: _unitNumberController,
                 hint: 'Ej. 212-A o S/N',
-                validator: (v) => (_selectedRole == AppConstants.roleResident && (v == null || v.isEmpty)) 
-                  ? 'El número de casa es requerido para residentes' 
+                validator: (v) => ((_selectedRole == AppConstants.roleResident || (_selectedRole == AppConstants.roleAdmin && _livesInCondo)) && (v == null || v.isEmpty))
+                  ? 'El número de casa es requerido'
                   : null,
               ),
             ],
@@ -268,7 +278,8 @@ class _NewProfileTabState extends State<_NewProfileTab> {
                   birthDate: DateTime.now(), 
                   age: 0, 
                   phone: _phoneController.text.trim(),
-                  unitNumber: _selectedRole == AppConstants.roleResident ? _unitNumberController.text.trim() : null,
+                  unitNumber: (_selectedRole == AppConstants.roleResident || (_selectedRole == AppConstants.roleAdmin && _livesInCondo)) ? _unitNumberController.text.trim() : null,
+                  livesInCondo: _livesInCondo,
                 );
                 if (success && mounted) {
                   UIUtils.showSnackBar(context, 'Perfil creado exitosamente', isError: false);
@@ -321,21 +332,37 @@ class _UserCardState extends State<_UserCard> {
   bool _isEditing = false;
   bool _isAdminCheck = false;
   bool _isOnDutyCheck = false;
+  bool _livesInCondoCheck = true;
   final _newPasswordController = TextEditingController();
   final _unitNumberController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  String _editingRole = AppConstants.roleResident;
 
   @override
   void initState() {
     super.initState();
     _isOnDutyCheck = widget.user.isOnDuty;
+    _livesInCondoCheck = widget.user.livesInCondo;
     _isAdminCheck = widget.user.role == AppConstants.roleAdmin;
     _unitNumberController.text = widget.user.unitNumber ?? '';
+    _nameController.text = widget.user.name;
+    _lastNameController.text = widget.user.lastName;
+    _emailController.text = widget.user.email;
+    _phoneController.text = widget.user.phone ?? '';
+    _editingRole = widget.user.role;
   }
 
   @override
   void dispose() {
     _newPasswordController.dispose();
     _unitNumberController.dispose();
+    _nameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -359,11 +386,12 @@ class _UserCardState extends State<_UserCard> {
                     children: [
                       Text('${widget.user.name} ${widget.user.lastName}',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Row(
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text('Perfil: ${widget.user.role}',
                               style: TextStyle(color: Colors.grey[600])),
-                          if (widget.user.role == AppConstants.roleResident && widget.user.unitNumber != null) ...[
+                          if ((widget.user.role == AppConstants.roleResident || widget.user.role == AppConstants.roleAdmin) && widget.user.unitNumber != null) ...[
                             const SizedBox(width: 8),
                             Text('| Casa: ${widget.user.unitNumber}',
                                 style: TextStyle(color: Colors.grey[600])),
@@ -388,8 +416,14 @@ class _UserCardState extends State<_UserCard> {
                           ],
                         ],
                       ),
+                      if (widget.user.email.isNotEmpty)
+                        Text('Correo: ${widget.user.email}', 
+                            style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                       if (widget.user.phone != null && widget.user.phone!.isNotEmpty)
                         Text('Tel: ${widget.user.phone}', 
+                            style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                      if (widget.user.role != AppConstants.roleGuard)
+                        Text('¿Vive en el condominio?: ${widget.user.livesInCondo ? "Sí" : "No"}',
                             style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                     ],
                   ),
@@ -410,20 +444,55 @@ class _UserCardState extends State<_UserCard> {
             ),
             if (_isEditing) ...[
               const Divider(),
-              if (widget.user.role == AppConstants.roleResident)
-                CheckboxListTile(
-                  title: const Text('Convertir en Administrador'),
-                  value: _isAdminCheck,
-                  onChanged: (v) => setState(() => _isAdminCheck = v!),
+              CustomTextField(
+                label: 'Nombres',
+                controller: _nameController,
+              ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                label: 'Apellidos',
+                controller: _lastNameController,
+              ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                label: 'Correo',
+                controller: _emailController,
+              ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                label: 'Teléfono',
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _editingRole,
+                decoration: const InputDecoration(
+                  labelText: 'Perfil',
+                  border: OutlineInputBorder(),
                 ),
-              if (widget.user.role == AppConstants.roleGuard)
+                items: const [
+                  DropdownMenuItem(value: AppConstants.roleAdmin, child: Text('Administrador')),
+                  DropdownMenuItem(value: AppConstants.roleResident, child: Text('Residente')),
+                  DropdownMenuItem(value: AppConstants.roleGuard, child: Text('Vigilante')),
+                ],
+                onChanged: (v) => setState(() => _editingRole = v ?? _editingRole),
+              ),
+              const SizedBox(height: 8),
+              if (_editingRole == AppConstants.roleGuard)
                 SwitchListTile(
                   title: const Text('En turno'),
                   subtitle: Text(_isOnDutyCheck ? 'Vigilante activo (${widget.user.shiftName})' : 'Vigilante inactivo'),
                   value: _isOnDutyCheck,
                   onChanged: (v) => setState(() => _isOnDutyCheck = v!),
                 ),
-              if (widget.user.role == AppConstants.roleResident) ...[
+              if (_editingRole != AppConstants.roleGuard)
+                SwitchListTile(
+                  title: const Text('¿Vive en el condominio?'),
+                  value: _livesInCondoCheck,
+                  onChanged: (v) => setState(() => _livesInCondoCheck = v),
+                ),
+              if (_editingRole == AppConstants.roleResident || (_editingRole == AppConstants.roleAdmin && _livesInCondoCheck)) ...[
                 const SizedBox(height: 8),
                 CustomTextField(
                   label: 'Número de Casa',
@@ -474,7 +543,7 @@ class _UserCardState extends State<_UserCard> {
 
     if (confirmed != true) return;
 
-    // Password Update Logic
+    // 1. Password Update Logic
     if (_newPasswordController.text.isNotEmpty) {
       final passConfirmed = await AdminProfilesScreen.showPasswordDialog(context);
       if (passConfirmed == true) {
@@ -491,12 +560,29 @@ class _UserCardState extends State<_UserCard> {
       }
     }
 
-    // Role Update Logic (Resident -> Admin)
-    if (widget.user.role == AppConstants.roleResident && _isAdminCheck) {
+    // 2. Full Profile Update
+    final success = await adminProvider.updateFullProfile(
+      userId: widget.user.id,
+      name: _nameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+      email: _emailController.text.trim(),
+      phone: _phoneController.text.trim(),
+      role: _editingRole,
+      livesInCondo: _livesInCondoCheck,
+      unitNumber: (_editingRole == AppConstants.roleResident || (_editingRole == AppConstants.roleAdmin && _livesInCondoCheck)) 
+          ? _unitNumberController.text.trim() 
+          : null,
+    );
+
+    // 3. Duty Status Logic (Guard) - only if still a guard
+    if (_editingRole == AppConstants.roleGuard) {
+      await adminProvider.updateDutyStatus(widget.user.id, _isOnDutyCheck);
+    }
+
+    // 4. Handle Role Change (Admin -> Resident logout logic if current user)
+    if (widget.user.role == AppConstants.roleResident && _editingRole == AppConstants.roleAdmin) {
       final passConfirmed = await AdminProfilesScreen.showPasswordDialog(context);
       if (passConfirmed == true) {
-        await adminProvider.updateUserRole(widget.user.id, AppConstants.roleAdmin);
-        
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         final currentUserId = authProvider.currentUser?.id;
         if (currentUserId != null) {
@@ -507,19 +593,7 @@ class _UserCardState extends State<_UserCard> {
           Navigator.pushNamedAndRemoveUntil(context, AppConstants.routeLogin, (route) => false);
           return;
         }
-      } else {
-        return;
       }
-    }
-
-    // Duty Status Logic (Guard)
-    if (widget.user.role == AppConstants.roleGuard) {
-      await adminProvider.updateDutyStatus(widget.user.id, _isOnDutyCheck);
-    }
-
-    // Unit Number Update Logic (Resident)
-    if (widget.user.role == AppConstants.roleResident && _unitNumberController.text != widget.user.unitNumber) {
-      await adminProvider.updateUnitNumber(widget.user.id, _unitNumberController.text.trim());
     }
 
     setState(() => _isEditing = false);

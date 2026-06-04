@@ -8,6 +8,7 @@ class UserModel {
   final bool isOnDuty;
   final String? phone;
   final String? unitNumber;
+  final bool livesInCondo;
 
   UserModel({
     required this.id,
@@ -19,6 +20,7 @@ class UserModel {
     this.isOnDuty = false,
     this.phone,
     this.unitNumber,
+    this.livesInCondo = true,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,7 @@ class UserModel {
       isOnDuty: json['is_on_duty'] ?? false,
       phone: json['phone'],
       unitNumber: json['residents']?['unit_number']?.toString() ?? json['unit_number']?.toString(),
+      livesInCondo: json['lives_in_condo'] ?? true,
     );
   }
 
@@ -45,6 +48,7 @@ class UserModel {
         'is_on_duty': isOnDuty,
         'phone': phone,
         'unit_number': unitNumber,
+        'lives_in_condo': livesInCondo,
       };
 
   UserModel copyWith({
@@ -57,6 +61,7 @@ class UserModel {
     bool? isOnDuty,
     String? phone,
     String? unitNumber,
+    bool? livesInCondo,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -68,6 +73,7 @@ class UserModel {
       isOnDuty: isOnDuty ?? this.isOnDuty,
       phone: phone ?? this.phone,
       unitNumber: unitNumber ?? this.unitNumber,
+      livesInCondo: livesInCondo ?? this.livesInCondo,
     );
   }
 

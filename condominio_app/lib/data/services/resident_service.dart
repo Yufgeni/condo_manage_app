@@ -6,13 +6,16 @@ class ResidentService {
 
   Future<List<ResidentModel>> getAllResidents() async {
     try {
-      final response = await _supabase
+      // 1. Fetch all residents from residents table
+      final residentsResponse = await _supabase
           .from('residents')
           .select('*, profiles!residents_profile_id_fkey(*), vehicles(*)');
       
-      return (response as List).map((data) {
+      final Map<String, ResidentModel> residentMap = {};
+
+      for (var data in (residentsResponse as List)) {
         final profile = data['profiles'];
-        return ResidentModel.fromJson({
+        residentMap[data['profile_id']] = ResidentModel.fromJson({
           ...data,
           'name': profile['name'],
           'email': profile['email'],
@@ -20,7 +23,31 @@ class ResidentService {
           'photoUrl': profile['photo_url'],
           'vehicles': data['vehicles'],
         });
-      }).toList();
+      }
+
+      // 2. Fetch all profiles where (role = 'resident') OR (role = 'admin' AND lives_in_condo = true)
+      final profilesResponse = await _supabase
+          .from('profiles')
+          .select()
+          .or('role.eq.resident,and(role.eq.admin,lives_in_condo.eq.true)');
+
+      for (var profile in (profilesResponse as List)) {
+        final String profileId = profile['id'];
+        if (!residentMap.containsKey(profileId)) {
+          // If not in residents table, create a dummy resident model for selection
+          residentMap[profileId] = ResidentModel(
+            id: '', 
+            profileId: profileId,
+            name: profile['name'],
+            email: profile['email'],
+            phone: profile['phone'],
+            unitNumber: 'S/N',
+            cars: [],
+          );
+        }
+      }
+
+      return residentMap.values.toList();
     } catch (e) {
       print('Error al obtener residentes: $e');
       return [];

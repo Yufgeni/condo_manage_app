@@ -95,6 +95,7 @@ class AdminProvider extends ChangeNotifier {
     int? age,
     String? phone,
     String? unitNumber,
+    bool livesInCondo = true,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -110,6 +111,7 @@ class AdminProvider extends ChangeNotifier {
       age: age ?? 0,
       phone: phone,
       unitNumber: unitNumber,
+      livesInCondo: livesInCondo,
     );
 
     if (!success) {
@@ -213,19 +215,53 @@ class AdminProvider extends ChangeNotifier {
     if (success) {
       final index = _users.indexWhere((u) => u.id == profileId);
       if (index != -1) {
-        _users[index] = UserModel(
-          id: _users[index].id,
-          email: _users[index].email,
-          name: _users[index].name,
-          lastName: _users[index].lastName,
-          role: _users[index].role,
-          photoUrl: _users[index].photoUrl,
-          isOnDuty: _users[index].isOnDuty,
-          phone: _users[index].phone,
+        _users[index] = _users[index].copyWith(unitNumber: unitNumber);
+      }
+    }
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> updateFullProfile({
+    required String userId,
+    required String name,
+    required String lastName,
+    required String email,
+    required String phone,
+    required String role,
+    required bool livesInCondo,
+    String? unitNumber,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final success = await _userService.updateFullProfile(
+      userId: userId,
+      name: name,
+      lastName: lastName,
+      email: email,
+      phone: phone,
+      role: role,
+      livesInCondo: livesInCondo,
+      unitNumber: unitNumber,
+    );
+
+    if (success) {
+      final index = _users.indexWhere((u) => u.id == userId);
+      if (index != -1) {
+        _users[index] = _users[index].copyWith(
+          name: name,
+          lastName: lastName,
+          email: email,
+          phone: phone,
+          role: role,
+          livesInCondo: livesInCondo,
           unitNumber: unitNumber,
         );
       }
     }
+
     _isLoading = false;
     notifyListeners();
     return success;

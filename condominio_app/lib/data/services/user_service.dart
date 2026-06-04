@@ -192,6 +192,7 @@ class UserService {
     required int age,
     String? phone,
     String? unitNumber,
+    bool livesInCondo = true,
   }) async {
     try {
       final response = await _supabase.auth.signUp(
@@ -204,19 +205,86 @@ class UserService {
           'birth_date': birthDate.toIso8601String(),
           'age': age,
           'phone': phone,
+          'lives_in_condo': livesInCondo,
         },
       );
 
-      if (response.user != null && role == 'resident') {
+      if (response.user != null && (role == 'resident' || (role == 'admin' && unitNumber != null))) {
         await _supabase.from('residents').insert({
           'profile_id': response.user!.id,
           'unit_number': unitNumber ?? 'S/N',
           'phone': phone,
         });
       }
+
+      // Explicitly update profiles table to ensure lives_in_condo is saved
+      if (response.user != null) {
+        await _supabase.from('profiles').update({
+          'lives_in_condo': livesInCondo,
+        }).eq('id', response.user!.id);
+      }
+
       return true;
     } catch (e) {
       print('Error creating profile: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateFullProfile({
+    required String userId,
+    required String name,
+    required String lastName,
+    required String email,
+    required String phone,
+    required String role,
+    required bool livesInCondo,
+    String? unitNumber,
+  }) async {
+    try {
+      // 1. Update email in Auth if it changed
+      // We check if it changed by looking at the current profile (passed email vs existing)
+      // or we just call the RPC which handles it. 
+      await _supabase.rpc('admin_update_user_email', params: {
+        'target_user_id': userId,
+        'new_email': email,
+      });
+
+      // 2. Update profiles table
+      await _supabase.from('profiles').update({
+        'name': name,
+        'last_name': lastName,
+        'email': email,
+        'phone': phone,
+        'role': role,
+        'lives_in_condo': livesInCondo,
+      }).eq('id', userId);
+
+      // 3. Handle residents table
+      if (role == 'resident' || (role == 'admin' && unitNumber != null)) {
+        final residentResponse = await _supabase
+            .from('residents')
+            .select('id')
+            .eq('profile_id', userId)
+            .maybeSingle();
+
+        if (residentResponse != null) {
+          await _supabase.from('residents').update({
+            'unit_number': unitNumber ?? 'S/N',
+            'phone': phone,
+          }).eq('profile_id', userId);
+        } else {
+          await _supabase.from('residents').insert({
+            'profile_id': userId,
+            'unit_number': unitNumber ?? 'S/N',
+            'phone': phone,
+          });
+        }
+      }
+
+      return true;
+    } catch (e) {
+      print('Error updating full profile: $e');
       return false;
     }
   }
