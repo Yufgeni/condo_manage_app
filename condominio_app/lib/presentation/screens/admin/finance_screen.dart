@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/receipt_pdf_utils.dart';
 import '../../../data/providers/finance_provider.dart';
+import '../../../data/providers/auth_provider.dart';
+import '../../../data/providers/resident_provider.dart';
 import '../../widgets/admin/admin_drawer.dart';
 import 'manage_movements_screen.dart';
 
 class FinanceScreen extends StatelessWidget {
   const FinanceScreen({super.key});
+// ... (rest of FinanceScreen)
 
   @override
   Widget build(BuildContext context) {
@@ -108,12 +112,14 @@ class _ApprovePaymentsScreenState extends State<ApprovePaymentsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<FinanceProvider>(context, listen: false).fetchPendingPayments();
+      Provider.of<ResidentProvider>(context, listen: false).fetchAllResidents();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
+    final residentProvider = Provider.of<ResidentProvider>(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Aprobar Pagos')),
@@ -137,11 +143,80 @@ class _ApprovePaymentsScreenState extends State<ApprovePaymentsScreen> {
                         subtitle: Text('Cuota ${payment.month} ${payment.year} - \$${payment.amount}'),
                         trailing: ElevatedButton(
                           onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
                             final success = await financeProvider.approvePayment(payment.id);
                             if (mounted && success) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              messenger.showSnackBar(
                                 const SnackBar(content: Text('Pago aprobado exitosamente'), backgroundColor: Colors.green),
                               );
+
+                              // Preguntar por enviar recibo
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (context) => AlertDialog(
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  title: const Column(
+                                    children: [
+                                      Icon(Icons.verified, color: Colors.blue, size: 60),
+                                      SizedBox(height: 10),
+                                      Text('¡Pago aprobado!', textAlign: TextAlign.center),
+                                    ],
+                                  ),
+                                  content: const Text(
+                                    '¿Desea generar el recibo PDF con su firma y enviarlo por WhatsApp ahora mismo?',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  actionsAlignment: MainAxisAlignment.center,
+                                  actions: [
+                                    Column(
+                                      children: [
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton.icon(
+                                            onPressed: () => Navigator.pop(context, true),
+                                            icon: const Icon(Icons.send, color: Colors.white),
+                                            label: const Text('SÍ, ENVIAR AHORA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.green,
+                                              foregroundColor: Colors.white,
+                                              padding: const EdgeInsets.symmetric(vertical: 16),
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: TextButton(
+                                            onPressed: () => Navigator.pop(context, false),
+                                            child: const Text('NO ENVIAR', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                            style: TextButton.styleFrom(
+                                              padding: const EdgeInsets.symmetric(vertical: 12),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirmed == true && mounted) {
+                                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                final resident = residentProvider.allResidents.firstWhere(
+                                  (r) => r.id == payment.residentId,
+                                  orElse: () => residentProvider.allResidents.firstWhere((r) => r.profileId == payment.residentId, orElse: () => residentProvider.allResidents.first),
+                                );
+                                
+                                await ReceiptPdfUtils.generateAndShareReceipt(
+                                  context: context,
+                                  payment: payment,
+                                  admin: authProvider.currentUser!,
+                                  residentUnit: resident.unitNumber,
+                                );
+                              }
                             }
                           },
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.green),

@@ -73,7 +73,7 @@ class FinanceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> registerPayment({
+  Future<PaymentModel?> registerPayment({
     required String residentId,
     required double amount,
     required String month,
@@ -96,14 +96,14 @@ class FinanceProvider extends ChangeNotifier {
       description: description,
     );
 
-    final success = await _financeService.uploadPayment(payment, image);
+    final PaymentModel? createdPayment = await _financeService.uploadPayment(payment, image);
     
     _isLoading = false;
     notifyListeners();
-    return success;
+    return createdPayment;
   }
 
-  Future<bool> registerIncome(IncomeModel income) async {
+  Future<PaymentModel?> registerIncome(IncomeModel income) async {
     return await registerPayment(
       residentId: income.residentId,
       amount: income.amount,

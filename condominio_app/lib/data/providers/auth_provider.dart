@@ -56,6 +56,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateCurrentUser(UserModel user) {
+    _currentUser = user;
+    notifyListeners();
+  }
+
   Future<bool> updatePassword(String newPassword) async {
     _isLoading = true;
     notifyListeners();

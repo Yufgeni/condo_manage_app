@@ -260,6 +260,9 @@ class AdminProvider extends ChangeNotifier {
           unitNumber: unitNumber,
         );
       }
+      _errorMessage = null;
+    } else {
+      _errorMessage = 'Error al actualizar el perfil en el servidor';
     }
 
     _isLoading = false;

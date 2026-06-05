@@ -28,12 +28,14 @@ import '../screens/guard/guard_reports_list_screen.dart';
 import '../screens/admin/admin_reports_screen.dart';
 import '../screens/guard/guard_residents_screen.dart';
 import '../screens/admin/admin_profiles_screen.dart';
+import '../screens/admin/signature_pad_screen.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> get routes => {
         AppConstants.routeLogin: (_) => const LoginScreen(),
         AppConstants.routeAdminDashboard: (_) => const AdminDashboard(),
         AppConstants.routeAdminProfiles: (_) => const AdminProfilesScreen(),
+        AppConstants.routeAdminSignature: (_) => const SignaturePadScreen(),
         AppConstants.routeResidents: (_) => const ResidentsScreen(),
         AppConstants.routeGuards: (_) => const GuardsScreen(),
         AppConstants.routeMaintenance: (_) => const MaintenanceScreen(),

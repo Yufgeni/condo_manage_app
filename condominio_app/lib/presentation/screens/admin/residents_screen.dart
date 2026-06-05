@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/ui_utils.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/models/resident_model.dart';
 import '../../../data/providers/admin_provider.dart';
@@ -21,6 +23,54 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
       Provider.of<AdminProvider>(context, listen: false).fetchUsers();
       Provider.of<ResidentProvider>(context, listen: false).fetchAllResidents();
     });
+  }
+
+  Future<void> _launchCaller(String phoneNumber) async {
+    final Uri url = Uri.parse('tel:${phoneNumber.replaceAll(RegExp(r'[^\d+]'), '')}');
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else {
+        // Intentar con un esquema alternativo o simplemente mostrar error
+        if (mounted) {
+          UIUtils.showSnackBar(context, 'No se pudo abrir el marcador telefónico');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        UIUtils.showSnackBar(context, 'Error al intentar realizar la llamada');
+      }
+    }
+  }
+
+  Future<void> _launchWhatsApp(String phoneNumber) async {
+    // Limpiar el número de caracteres no numéricos excepto el +
+    String cleanNumber = phoneNumber.replaceAll(RegExp(r'[^\d]'), '');
+    
+    // Si no empieza con +, y parece un número local, podríamos necesitar un prefijo
+    // pero intentaremos primero el esquema whatsapp:// que suele ser más directo en móviles
+    
+    final Uri url = Uri.parse('whatsapp://send?phone=$cleanNumber');
+    final Uri fallbackUrl = Uri.parse('https://wa.me/$cleanNumber');
+
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else if (await canLaunchUrl(fallbackUrl)) {
+        await launchUrl(fallbackUrl, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          UIUtils.showSnackBar(context, 'No se pudo abrir WhatsApp. Asegúrese de tener la app instalada.');
+        }
+      }
+    } catch (e) {
+      // Si falla el esquema whatsapp://, intentar el web link
+      if (await canLaunchUrl(fallbackUrl)) {
+        await launchUrl(fallbackUrl, mode: LaunchMode.externalApplication);
+      } else if (mounted) {
+        UIUtils.showSnackBar(context, 'Error al abrir WhatsApp');
+      }
+    }
   }
 
   void _showResidentInfo(BuildContext context, UserModel userProfile) {
@@ -50,6 +100,27 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
             children: [
               _infoRow(Icons.email, 'Email', userProfile.email),
               _infoRow(Icons.phone, 'Teléfono', userProfile.phone ?? 'Sin registro'),
+              if (userProfile.phone != null && userProfile.phone!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _interactionButton(
+                      icon: Icons.phone,
+                      label: 'Llamar',
+                      color: Colors.blue,
+                      onPressed: () => _launchCaller(userProfile.phone!),
+                    ),
+                    const SizedBox(width: 20),
+                    _interactionButton(
+                      icon: Icons.message,
+                      label: 'WhatsApp',
+                      color: Colors.green,
+                      onPressed: () => _launchWhatsApp(userProfile.phone!),
+                    ),
+                  ],
+                ),
+              ],
               const Divider(height: 30),
               const Text(
                 'Automóviles Registrados',
@@ -108,11 +179,37 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
     );
   }
 
+  Widget _interactionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton.filled(
+          onPressed: onPressed,
+          icon: Icon(icon),
+          style: IconButton.styleFrom(
+            backgroundColor: color,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.all(12),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(label, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final adminProvider = Provider.of<AdminProvider>(context);
     final residents = adminProvider.users
-        .where((u) => u.role == AppConstants.roleResident)
+        .where((u) => 
+            u.role == AppConstants.roleResident || 
+            (u.role == AppConstants.roleAdmin && u.livesInCondo))
         .toList();
 
     return Scaffold(

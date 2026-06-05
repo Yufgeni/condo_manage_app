@@ -2,6 +2,7 @@ class PaymentModel {
   final String id;
   final String residentId;
   final String? residentName; // Optional, for display
+  final String? residentPhone; // Added for WhatsApp
   final double amount;
   final String month;
   final String year;
@@ -14,6 +15,7 @@ class PaymentModel {
     required this.id,
     required this.residentId,
     this.residentName,
+    this.residentPhone,
     required this.amount,
     required this.month,
     required this.year,
@@ -26,14 +28,17 @@ class PaymentModel {
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
     // Handling nested join structure: residents -> profiles -> name
     String? name = json['profiles']?['name']; // Fallback for old join
+    String? phone = json['profiles']?['phone'];
     if (json['residents']?['profiles'] != null) {
       name = json['residents']['profiles']['name'];
+      phone = json['residents']['profiles']['phone'];
     }
 
     return PaymentModel(
       id: json['id']?.toString() ?? '',
       residentId: json['resident_id']?.toString() ?? '',
       residentName: name,
+      residentPhone: phone,
       amount: (json['amount'] ?? 0).toDouble(),
       month: json['month'] ?? '',
       year: json['year']?.toString() ?? '',
@@ -54,11 +59,12 @@ class PaymentModel {
         'description': description,
       };
 
-  PaymentModel copyWith({String? status}) {
+  PaymentModel copyWith({String? status, String? residentPhone}) {
     return PaymentModel(
       id: id,
       residentId: residentId,
       residentName: residentName,
+      residentPhone: residentPhone ?? this.residentPhone,
       amount: amount,
       month: month,
       year: year,

@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/ui_utils.dart';
 import '../../../data/providers/admin_provider.dart';
-import '../../../data/providers/auth_provider.dart';
 import '../../../data/models/user_model.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
+import '../../widgets/common/phone_input_field.dart';
 
 class AdminProfilesScreen extends StatefulWidget {
   const AdminProfilesScreen({super.key});
@@ -42,7 +42,7 @@ class AdminProfilesScreen extends StatefulWidget {
             onPressed: () async {
               final adminProvider = Provider.of<AdminProvider>(context, listen: false);
               final valid = await adminProvider.verifyPassword(controller.text);
-              if (valid) {
+              if (valid && context.mounted) {
                 Navigator.pop(context, true);
               } else {
                 if (context.mounted) {
@@ -132,7 +132,7 @@ class _AdminProfilesScreenState extends State<AdminProfilesScreen> {
 }
 
 class _NewProfileTab extends StatefulWidget {
-  const _NewProfileTab({Key? key}) : super(key: key);
+  const _NewProfileTab({super.key});
 
   @override
   State<_NewProfileTab> createState() => _NewProfileTabState();
@@ -146,6 +146,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
   final _unitNumberController = TextEditingController();
+  String _fullPhoneNumber = '';
   String _selectedRole = AppConstants.roleResident;
   bool _livesInCondo = true;
 
@@ -196,11 +197,10 @@ class _NewProfileTabState extends State<_NewProfileTab> {
               validator: (v) => v?.isEmpty == true ? 'Campo requerido' : null,
             ),
             const SizedBox(height: 12),
-            CustomTextField(
+            PhoneInputField(
               label: 'Teléfono',
               controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              validator: (v) => v?.isEmpty == true ? 'Campo requerido' : null,
+              onFullNumberChanged: (full) => _fullPhoneNumber = full,
             ),
             const SizedBox(height: 12),
             CustomTextField(
@@ -217,7 +217,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _selectedRole,
+              initialValue: _selectedRole,
               decoration: const InputDecoration(
                 labelText: 'Perfil',
                 border: OutlineInputBorder(),
@@ -277,7 +277,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
                   role: _selectedRole,
                   birthDate: DateTime.now(), 
                   age: 0, 
-                  phone: _phoneController.text.trim(),
+                  phone: _fullPhoneNumber.isNotEmpty ? _fullPhoneNumber : _phoneController.text.trim(),
                   unitNumber: (_selectedRole == AppConstants.roleResident || (_selectedRole == AppConstants.roleAdmin && _livesInCondo)) ? _unitNumberController.text.trim() : null,
                   livesInCondo: _livesInCondo,
                 );
@@ -314,7 +314,10 @@ class _ModifyProfileTab extends StatelessWidget {
       itemCount: adminProvider.users.length,
       itemBuilder: (context, index) {
         final user = adminProvider.users[index];
-        return _UserCard(user: user);
+        return _UserCard(
+          key: ValueKey(user.id),
+          user: user,
+        );
       },
     );
   }
@@ -330,7 +333,6 @@ class _UserCard extends StatefulWidget {
 
 class _UserCardState extends State<_UserCard> {
   bool _isEditing = false;
-  bool _isAdminCheck = false;
   bool _isOnDutyCheck = false;
   bool _livesInCondoCheck = true;
   final _newPasswordController = TextEditingController();
@@ -339,6 +341,7 @@ class _UserCardState extends State<_UserCard> {
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  String _fullPhoneNumber = '';
   String _editingRole = AppConstants.roleResident;
 
   @override
@@ -346,13 +349,29 @@ class _UserCardState extends State<_UserCard> {
     super.initState();
     _isOnDutyCheck = widget.user.isOnDuty;
     _livesInCondoCheck = widget.user.livesInCondo;
-    _isAdminCheck = widget.user.role == AppConstants.roleAdmin;
     _unitNumberController.text = widget.user.unitNumber ?? '';
     _nameController.text = widget.user.name;
     _lastNameController.text = widget.user.lastName;
     _emailController.text = widget.user.email;
     _phoneController.text = widget.user.phone ?? '';
+    _fullPhoneNumber = widget.user.phone ?? '';
     _editingRole = widget.user.role;
+  }
+
+  @override
+  void didUpdateWidget(_UserCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.user != oldWidget.user && !_isEditing) {
+      _isOnDutyCheck = widget.user.isOnDuty;
+      _livesInCondoCheck = widget.user.livesInCondo;
+      _unitNumberController.text = widget.user.unitNumber ?? '';
+      _nameController.text = widget.user.name;
+      _lastNameController.text = widget.user.lastName;
+      _emailController.text = widget.user.email;
+      _phoneController.text = widget.user.phone ?? '';
+      _fullPhoneNumber = widget.user.phone ?? '';
+      _editingRole = widget.user.role;
+    }
   }
 
   @override
@@ -459,10 +478,10 @@ class _UserCardState extends State<_UserCard> {
                 controller: _emailController,
               ),
               const SizedBox(height: 8),
-              CustomTextField(
+              PhoneInputField(
                 label: 'Teléfono',
                 controller: _phoneController,
-                keyboardType: TextInputType.phone,
+                onFullNumberChanged: (full) => _fullPhoneNumber = full,
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
@@ -484,7 +503,7 @@ class _UserCardState extends State<_UserCard> {
                   title: const Text('En turno'),
                   subtitle: Text(_isOnDutyCheck ? 'Vigilante activo (${widget.user.shiftName})' : 'Vigilante inactivo'),
                   value: _isOnDutyCheck,
-                  onChanged: (v) => setState(() => _isOnDutyCheck = v!),
+                  onChanged: (v) => setState(() => _isOnDutyCheck = v),
                 ),
               if (_editingRole != AppConstants.roleGuard)
                 SwitchListTile(
@@ -566,7 +585,7 @@ class _UserCardState extends State<_UserCard> {
       name: _nameController.text.trim(),
       lastName: _lastNameController.text.trim(),
       email: _emailController.text.trim(),
-      phone: _phoneController.text.trim(),
+      phone: _fullPhoneNumber.isNotEmpty ? _fullPhoneNumber : _phoneController.text.trim(),
       role: _editingRole,
       livesInCondo: _livesInCondoCheck,
       unitNumber: (_editingRole == AppConstants.roleResident || (_editingRole == AppConstants.roleAdmin && _livesInCondoCheck)) 
@@ -574,31 +593,15 @@ class _UserCardState extends State<_UserCard> {
           : null,
     );
 
-    // 3. Duty Status Logic (Guard) - only if still a guard
-    if (_editingRole == AppConstants.roleGuard) {
-      await adminProvider.updateDutyStatus(widget.user.id, _isOnDutyCheck);
-    }
-
-    // 4. Handle Role Change (Admin -> Resident logout logic if current user)
-    if (widget.user.role == AppConstants.roleResident && _editingRole == AppConstants.roleAdmin) {
-      final passConfirmed = await AdminProfilesScreen.showPasswordDialog(context);
-      if (passConfirmed == true) {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        final currentUserId = authProvider.currentUser?.id;
-        if (currentUserId != null) {
-          await adminProvider.updateUserRole(currentUserId, AppConstants.roleResident);
-        }
-        await authProvider.logout();
-        if (context.mounted) {
-          Navigator.pushNamedAndRemoveUntil(context, AppConstants.routeLogin, (route) => false);
-          return;
-        }
+    if (success) {
+      setState(() => _isEditing = false);
+      if (context.mounted) {
+        UIUtils.showSnackBar(context, 'Perfil actualizado exitosamente', isError: false);
       }
-    }
-
-    setState(() => _isEditing = false);
-    if (context.mounted) {
-      UIUtils.showSnackBar(context, 'Perfil actualizado exitosamente', isError: false);
+    } else {
+      if (context.mounted) {
+        UIUtils.showSnackBar(context, adminProvider.errorMessage ?? 'Error al actualizar el perfil');
+      }
     }
   }
 

@@ -27,7 +27,7 @@ class FinanceService {
     try {
       final response = await _supabase
           .from('payments')
-          .select('*, residents(profiles(name))')
+          .select('*, residents(profiles(name, phone))')
           .eq('status', 'pending')
           .order('created_at', ascending: false);
       
@@ -37,30 +37,71 @@ class FinanceService {
     }
   }
 
-  Future<bool> uploadPayment(PaymentModel payment, File? imageFile) async {
+  Future<PaymentModel?> uploadPayment(PaymentModel payment, File? imageFile) async {
     try {
       String? receiptUrl;
 
+      // Ensure resident_id is valid UUID. 
+      // Sometimes we receive profile_id from admin residents.
+      String residentId = payment.residentId;
+      
+      // Check if it's already a resident entry or if we need to create/find one
+      Map<String, dynamic>? resCheck;
+      if (residentId.isNotEmpty) {
+        resCheck = await _supabase
+            .from('residents')
+            .select('id')
+            .eq('id', residentId)
+            .maybeSingle();
+      }
+      
+      if (resCheck == null) {
+        // Might be a profile_id, check in residents table
+        final profCheck = await _supabase
+            .from('residents')
+            .select('id')
+            .eq('profile_id', residentId)
+            .maybeSingle();
+        
+        if (profCheck != null) {
+          residentId = profCheck['id'].toString();
+        } else {
+          // It's a live-in admin not yet in residents table, or a bad ID.
+          // Try to create resident entry for this profile_id
+          try {
+            final newRes = await _supabase.from('residents').insert({
+              'profile_id': residentId,
+              'unit_number': 'S/N',
+            }).select('id').single();
+            residentId = newRes['id'].toString();
+          } catch (e) {
+             debugPrint('Could not map profile_id $residentId to a resident_id: $e');
+             return null;
+          }
+        }
+      }
+
       if (imageFile != null) {
-        final fileName = '${DateTime.now().millisecondsSinceEpoch}_${payment.residentId}.jpg';
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}_${residentId}.jpg';
         final path = 'receipts/$fileName';
         await _supabase.storage.from('payment-receipts').upload(path, imageFile);
         receiptUrl = _supabase.storage.from('payment-receipts').getPublicUrl(path);
       }
 
-      await _supabase.from('payments').insert({
-        'resident_id': payment.residentId,
+      final response = await _supabase.from('payments').insert({
+        'resident_id': residentId,
         'amount': payment.amount,
         'month': payment.month,
         'year': int.tryParse(payment.year) ?? DateTime.now().year,
         'status': payment.status,
         'receipt_url': receiptUrl,
         'description': payment.description,
-      });
+      }).select('*, residents(profiles(name, phone))').single();
       
-      return true;
+      return PaymentModel.fromJson(response);
     } catch (e) {
-      return false;
+      debugPrint('Error uploading payment: $e');
+      return null;
     }
   }
 
@@ -116,7 +157,7 @@ class FinanceService {
     try {
       final response = await _supabase
           .from('payments')
-          .select('*, residents(profiles(name))')
+          .select('*, residents(profiles(name, phone))')
           .eq('month', month)
           .eq('year', year)
           .eq('status', 'paid');

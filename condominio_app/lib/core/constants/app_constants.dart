@@ -38,4 +38,5 @@ class AppConstants {
   static const String routeGuardResidents = '/guard-residents';
   static const String routeAdminProfiles = '/admin-profiles';
   static const String routeAddProfile = '/add-profile';
+  static const String routeAdminSignature = '/admin-signature';
 }

@@ -243,12 +243,16 @@ class UserService {
   }) async {
     try {
       // 1. Update email in Auth if it changed
-      // We check if it changed by looking at the current profile (passed email vs existing)
-      // or we just call the RPC which handles it. 
-      await _supabase.rpc('admin_update_user_email', params: {
-        'target_user_id': userId,
-        'new_email': email,
-      });
+      // We'll wrap this in a try-catch because the RPC might not exist
+      try {
+        await _supabase.rpc('admin_update_user_email', params: {
+          'target_user_id': userId,
+          'new_email': email,
+        });
+      } catch (e) {
+        debugPrint('Warning: RPC admin_update_user_email failed or not found. Email not updated in Auth: $e');
+        // We continue to update the profile table even if auth email fails
+      }
 
       // 2. Update profiles table
       await _supabase.from('profiles').update({
@@ -286,6 +290,28 @@ class UserService {
     } catch (e) {
       print('Error updating full profile: $e');
       return false;
+    }
+  }
+
+  Future<String?> uploadSignature(String userId, Uint8List signatureData) async {
+    try {
+      final fileName = 'sig_$userId.png';
+      final path = 'signatures/$fileName';
+      
+      await _supabase.storage.from('admin-signatures').uploadBinary(
+        path,
+        signatureData,
+        fileOptions: const FileOptions(contentType: 'image/png', upsert: true),
+      );
+
+      final signatureUrl = _supabase.storage.from('admin-signatures').getPublicUrl(path);
+
+      await _supabase.from('profiles').update({'signature_url': signatureUrl}).eq('id', userId);
+
+      return signatureUrl;
+    } catch (e) {
+      debugPrint('Error uploading signature: $e');
+      return null;
     }
   }
 }

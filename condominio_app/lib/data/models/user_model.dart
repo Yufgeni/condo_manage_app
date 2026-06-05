@@ -9,6 +9,7 @@ class UserModel {
   final String? phone;
   final String? unitNumber;
   final bool livesInCondo;
+  final String? signatureUrl;
 
   UserModel({
     required this.id,
@@ -21,6 +22,7 @@ class UserModel {
     this.phone,
     this.unitNumber,
     this.livesInCondo = true,
+    this.signatureUrl,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class UserModel {
       phone: json['phone'],
       unitNumber: json['residents']?['unit_number']?.toString() ?? json['unit_number']?.toString(),
       livesInCondo: json['lives_in_condo'] ?? true,
+      signatureUrl: json['signature_url'],
     );
   }
 
@@ -49,6 +52,7 @@ class UserModel {
         'phone': phone,
         'unit_number': unitNumber,
         'lives_in_condo': livesInCondo,
+        'signature_url': signatureUrl,
       };
 
   UserModel copyWith({
@@ -62,6 +66,7 @@ class UserModel {
     String? phone,
     String? unitNumber,
     bool? livesInCondo,
+    String? signatureUrl,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -74,6 +79,7 @@ class UserModel {
       phone: phone ?? this.phone,
       unitNumber: unitNumber ?? this.unitNumber,
       livesInCondo: livesInCondo ?? this.livesInCondo,
+      signatureUrl: signatureUrl ?? this.signatureUrl,
     );
   }
 

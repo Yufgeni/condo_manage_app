@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/income_model.dart';
 import '../../../data/models/resident_model.dart';
+import '../../../data/models/payment_model.dart';
 import '../../../data/providers/finance_provider.dart';
 import '../../../data/providers/resident_provider.dart';
+import '../../../data/providers/auth_provider.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/utils/receipt_pdf_utils.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 
@@ -55,7 +58,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
 
     final income = IncomeModel(
       id: '',
-      residentId: _selectedResident!.id,
+      residentId: _selectedResident!.id.isNotEmpty ? _selectedResident!.id : _selectedResident!.profileId,
       residentName: _selectedResident!.name,
       month: _selectedMonth!,
       year: _selectedYear!,
@@ -64,14 +67,78 @@ class _IncomeScreenState extends State<IncomeScreen> {
       date: DateTime.now(),
     );
 
-    final success = await financeProvider.registerIncome(income);
+    final createdPayment = await financeProvider.registerIncome(income);
 
     if (mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pago registrado exitosamente'), backgroundColor: Colors.green),
+      if (createdPayment != null) {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Column(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green, size: 60),
+                SizedBox(height: 10),
+                Text('¡Pago registrado!', textAlign: TextAlign.center),
+              ],
+            ),
+            content: const Text(
+              '¿Desea enviar el recibo PDF con su firma por WhatsApp ahora mismo?',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.pop(context, true),
+                      icon: const Icon(Icons.send, color: Colors.white),
+                      label: const Text('SÍ, ENVIAR AHORA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('NO ENVIAR', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         );
-        Navigator.pop(context);
+
+        if (confirmed == true && mounted) {
+          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          await ReceiptPdfUtils.generateAndShareReceipt(
+            context: context,
+            payment: createdPayment,
+            admin: authProvider.currentUser!,
+            residentUnit: _selectedResident!.unitNumber,
+          );
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pago registrado exitosamente'), backgroundColor: Colors.green),
+          );
+          Navigator.pop(context);
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error al registrar pago'), backgroundColor: Colors.red),
@@ -98,29 +165,28 @@ class _IncomeScreenState extends State<IncomeScreen> {
               final financeProvider = Provider.of<FinanceProvider>(context, listen: false);
               final success = await financeProvider.deleteConcept(concept, type);
               
-              if (success && mounted) {
-                // 2. Usamos la referencia guardada para la notificación
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text('Concepto "$concept" eliminado exitosamente'),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
+            if (success && mounted) {
+              // 2. Usamos la referencia guardada para la notificación
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text('Concepto "$concept" eliminado exitosamente'),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
 
-                // Esperamos 1.3 segundos solicitado
-                await Future.delayed(const Duration(milliseconds: 1300));
+              // Esperamos 1.3 segundos solicitado
+              await Future.delayed(const Duration(milliseconds: 1300));
 
-                if (mounted) {
-                  // 3. Cerramos el menú desplegable (PopupRoute) de forma segura
-                  // Esto obliga al usuario a abrirlo de nuevo y ver la lista actualizada
-                  Navigator.of(context).popUntil((route) => route.isFirst || route is! PopupRoute);
+              if (mounted) {
+                // 3. Cerramos el menú desplegable (PopupRoute) de forma segura
+                Navigator.popUntil(context, (route) => route.isFirst || route is! PopupRoute);
 
-                  setState(() {
-                    _selectedConcept = null;
-                  });
-                }
+                setState(() {
+                  _selectedConcept = null;
+                });
               }
+            }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),

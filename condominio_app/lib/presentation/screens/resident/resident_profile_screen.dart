@@ -6,6 +6,7 @@ import '../../../data/providers/resident_provider.dart';
 import '../../../core/utils/ui_utils.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
+import '../../widgets/common/phone_input_field.dart';
 
 class ResidentProfileScreen extends StatefulWidget {
   const ResidentProfileScreen({super.key});
@@ -101,6 +102,7 @@ class _MyDataTab extends StatefulWidget {
 class _MyDataTabState extends State<_MyDataTab> {
   final _phoneController = TextEditingController();
   final _unitNumberController = TextEditingController();
+  String _fullPhoneNumber = '';
   bool _isAddingVehicle = false;
   bool _dataInitialized = false;
 
@@ -134,7 +136,7 @@ class _MyDataTabState extends State<_MyDataTab> {
     final provider = Provider.of<ResidentProvider>(context, listen: false);
     
     bool success = await provider.updateResidentData(
-      phone: _phoneController.text.trim(),
+      phone: _fullPhoneNumber.isNotEmpty ? _fullPhoneNumber : _phoneController.text.trim(),
     );
 
     if (mounted) {
@@ -165,11 +167,10 @@ class _MyDataTabState extends State<_MyDataTab> {
           const Text('Información Personal',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20))),
           const SizedBox(height: 12),
-          CustomTextField(
+          PhoneInputField(
             label: 'Número de teléfono',
             controller: _phoneController,
-            keyboardType: TextInputType.phone,
-            prefixIcon: const Icon(Icons.phone),
+            onFullNumberChanged: (full) => _fullPhoneNumber = full,
           ),
           const SizedBox(height: 12),
           CustomTextField(

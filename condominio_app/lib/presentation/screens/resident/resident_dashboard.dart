@@ -58,6 +58,13 @@ class ResidentDashboard extends StatelessWidget {
                         context, AppConstants.routeGuardOnDuty),
                   ),
                   _ResidentCard(
+                    title: 'Residentes',
+                    icon: Icons.people_outline,
+                    color: Colors.teal,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeResidents),
+                  ),
+                  _ResidentCard(
                     title: 'Mi Perfil',
                     icon: Icons.person,
                     color: Colors.purple,

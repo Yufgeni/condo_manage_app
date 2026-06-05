@@ -46,22 +46,17 @@ class _UploadPaymentScreenState extends State<UploadPaymentScreen> {
     final residentProvider = Provider.of<ResidentProvider>(context, listen: false);
 
     // Ensure resident data is loaded to get the correct resident_id
-    if (residentProvider.resident == null || residentProvider.resident!.id.isEmpty) {
+    if (residentProvider.resident == null) {
       await residentProvider.loadResidentData(authProvider.currentUser!.id);
     }
 
-    if (residentProvider.resident == null || residentProvider.resident!.id.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('No se pudo encontrar el ID de residente. Contacta al administrador.'),
-          backgroundColor: Colors.red,
-        ));
-      }
-      return;
-    }
+    // Use resident.id if available, otherwise fallback to the user's profile ID
+    final String targetResidentId = (residentProvider.resident?.id != null && residentProvider.resident!.id.isNotEmpty)
+        ? residentProvider.resident!.id
+        : authProvider.currentUser!.id;
 
-    final success = await financeProvider.registerPayment(
-      residentId: residentProvider.resident!.id,
+    final createdPayment = await financeProvider.registerPayment(
+      residentId: targetResidentId,
       amount: double.parse(_amountController.text),
       month: _selectedMonth!,
       year: _selectedYear!,
@@ -70,11 +65,18 @@ class _UploadPaymentScreenState extends State<UploadPaymentScreen> {
     );
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(success ? 'Comprobante subido exitosamente' : 'Error al subir comprobante'),
-        backgroundColor: success ? Colors.green : Colors.red,
-      ));
-      if (success) Navigator.pop(context);
+      if (createdPayment != null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Comprobante subido exitosamente'),
+          backgroundColor: Colors.green,
+        ));
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Error al subir comprobante'),
+          backgroundColor: Colors.red,
+        ));
+      }
     }
   }
 
