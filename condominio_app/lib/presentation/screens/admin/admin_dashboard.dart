@@ -108,6 +108,14 @@ class AdminDashboard extends StatelessWidget {
                     onTap: () => Navigator.pushNamed(
                         context, AppConstants.routeVisitors),
                   ),
+                  if (authProvider.currentUser?.livesInCondo == true)
+                    _DashboardCard(
+                      title: 'Mis Pagos',
+                      icon: Icons.payments_outlined,
+                      color: Colors.green,
+                      onTap: () => Navigator.pushNamed(
+                          context, AppConstants.routeResidentPaymentsMenu),
+                    ),
                 ],
               ),
             ),

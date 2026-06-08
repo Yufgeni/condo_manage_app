@@ -18,6 +18,28 @@ class ResidentPaymentsMenuScreen extends StatelessWidget {
               child: ListView(
                 children: [
                   _MenuCard(
+                    title: 'Pagar ahora',
+                    subtitle: 'Realiza tu pago directo en línea',
+                    icon: Icons.payment,
+                    color: Colors.green,
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Próximamente'),
+                          content: const Text('La funcionalidad de pago directo estará disponible pronto.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Entendido'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _MenuCard(
                     title: 'Subir un pago',
                     subtitle: 'Registra un nuevo comprobante',
                     icon: Icons.upload_file,
