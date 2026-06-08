@@ -53,6 +53,13 @@ class AdminDashboard extends StatelessWidget {
                 childAspectRatio: 1.2,
                 children: [
                   _DashboardCard(
+                    title: 'Historial de Accesos',
+                    icon: Icons.history_edu,
+                    color: Colors.redAccent,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeVisitorHistory),
+                  ),
+                  _DashboardCard(
                     title: 'Residentes',
                     icon: Icons.people,
                     color: Colors.blue,
@@ -72,13 +79,6 @@ class AdminDashboard extends StatelessWidget {
                     color: Colors.orange,
                     onTap: () => Navigator.pushNamed(
                         context, AppConstants.routeFinance),
-                  ),
-                  _DashboardCard(
-                    title: 'Ver Visitas',
-                    icon: Icons.group_add_outlined,
-                    color: Colors.redAccent,
-                    onTap: () => Navigator.pushNamed(
-                        context, AppConstants.routeAdminVisitors),
                   ),
                   _DashboardCard(
                     title: 'Reportes Financieros',

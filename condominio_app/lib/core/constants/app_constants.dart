@@ -39,4 +39,9 @@ class AppConstants {
   static const String routeAdminProfiles = '/admin-profiles';
   static const String routeAddProfile = '/add-profile';
   static const String routeAdminSignature = '/admin-signature';
+  
+  // New Visitor Tracking Routes
+  static const String routeGuardVisitorRegistration = '/guard-visitor-registration';
+  static const String routeActiveVisitors = '/active-visitors';
+  static const String routeVisitorHistory = '/visitor-history';
 }

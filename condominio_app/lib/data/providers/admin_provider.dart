@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/report_model.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
@@ -80,7 +81,6 @@ class AdminProvider extends ChangeNotifier {
     return success;
   }
 
-  // --- Otros métodos existentes ---
   Future<bool> verifyPassword(String password) async {
     return await _userService.verifyPassword(password);
   }
@@ -101,28 +101,38 @@ class AdminProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final success = await _userService.createProfile(
-      email: email,
-      password: password,
-      name: name,
-      lastName: lastName,
-      role: role,
-      birthDate: birthDate ?? DateTime.now(),
-      age: age ?? 0,
-      phone: phone,
-      unitNumber: unitNumber,
-      livesInCondo: livesInCondo,
-    );
-
-    if (!success) {
-      _errorMessage = 'Error al crear el perfil';
-    } else {
+    try {
+      await _userService.createProfile(
+        email: email,
+        password: password,
+        name: name,
+        lastName: lastName,
+        role: role,
+        birthDate: birthDate ?? DateTime.now(),
+        age: age ?? 0,
+        phone: phone,
+        unitNumber: unitNumber,
+        livesInCondo: livesInCondo,
+      );
       await fetchUsers();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on AuthApiException catch (e) {
+      if (e.code == 'user_already_exists') {
+        _errorMessage = 'El correo electrónico ya está registrado en el sistema. Si desea cambiar el rol de este usuario, use la pestaña "Modificar perfil".';
+      } else {
+        _errorMessage = e.message;
+      }
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Error inesperado al crear el perfil: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return success;
   }
 
   Future<bool> deleteUser(String userId) async {
@@ -144,16 +154,7 @@ class AdminProvider extends ChangeNotifier {
     if (success) {
       final index = _users.indexWhere((u) => u.id == userId);
       if (index != -1) {
-        _users[index] = UserModel(
-          id: _users[index].id,
-          email: _users[index].email,
-          name: _users[index].name,
-          lastName: _users[index].lastName,
-          role: newRole,
-          photoUrl: _users[index].photoUrl,
-          isOnDuty: _users[index].isOnDuty,
-          phone: _users[index].phone,
-        );
+        _users[index] = _users[index].copyWith(role: newRole);
       }
     }
     _isLoading = false;
@@ -209,7 +210,6 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> updateUnitNumber(String profileId, String unitNumber) async {
     _isLoading = true;
     notifyListeners();
-    // Reutilizamos el servicio de residente ya que la tabla es la misma
     final ResidentService residentService = ResidentService();
     final success = await residentService.updateResidentUnitNumber(profileId, unitNumber);
     if (success) {

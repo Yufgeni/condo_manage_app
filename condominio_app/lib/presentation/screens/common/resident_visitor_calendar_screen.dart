@@ -59,7 +59,7 @@ class _ResidentVisitorCalendarScreenState extends State<ResidentVisitorCalendarS
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             eventLoader: (day) {
               return visitorProvider.allResidentVisitors.where((visitor) {
-                return isSameDay(visitor.date, day);
+                return isSameDay(visitor.entryAt, day);
               }).toList();
             },
             availableCalendarFormats: const {CalendarFormat.month: 'Mes'},

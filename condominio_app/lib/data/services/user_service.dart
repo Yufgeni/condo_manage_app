@@ -113,8 +113,7 @@ class UserService {
         await _supabase.from('residents').delete().eq('id', residentId);
       }
 
-      // 6. Eliminar el perfil (esto dispara el borrado en Auth si hay un trigger, 
-      // o simplemente limpia la tabla profiles)
+      // 6. Eliminar el perfil
       await _supabase.from('profiles').delete().eq('id', userId);
 
       return true;
@@ -182,7 +181,7 @@ class UserService {
     }
   }
   
-  Future<bool> createProfile({
+  Future<AuthResponse> createProfile({
     required String email,
     required String password,
     required String name,
@@ -194,22 +193,24 @@ class UserService {
     String? unitNumber,
     bool livesInCondo = true,
   }) async {
-    try {
-      final response = await _supabase.auth.signUp(
-        email: email,
-        password: password,
-        data: {
-          'name': name,
-          'last_name': lastName,
-          'role': role,
-          'birth_date': birthDate.toIso8601String(),
-          'age': age,
-          'phone': phone,
-          'lives_in_condo': livesInCondo,
-        },
-      );
+    // No usamos try-catch aquí para que el Provider capture la excepción específica de Supabase
+    final response = await _supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: {
+        'name': name,
+        'last_name': lastName,
+        'role': role,
+        'birth_date': birthDate.toIso8601String(),
+        'age': age,
+        'phone': phone,
+        'lives_in_condo': livesInCondo,
+      },
+    );
 
-      if (response.user != null && (role == 'resident' || (role == 'admin' && unitNumber != null))) {
+    if (response.user != null) {
+      // 1. Manejo de tabla residents si aplica
+      if (role == 'resident' || (role == 'admin' && unitNumber != null)) {
         await _supabase.from('residents').insert({
           'profile_id': response.user!.id,
           'unit_number': unitNumber ?? 'S/N',
@@ -217,18 +218,13 @@ class UserService {
         });
       }
 
-      // Explicitly update profiles table to ensure lives_in_condo is saved
-      if (response.user != null) {
-        await _supabase.from('profiles').update({
-          'lives_in_condo': livesInCondo,
-        }).eq('id', response.user!.id);
-      }
-
-      return true;
-    } catch (e) {
-      print('Error creating profile: $e');
-      return false;
+      // 2. Asegurar que lives_in_condo se guarde en profiles (a veces los metadatos tardan en sincronizar)
+      await _supabase.from('profiles').update({
+        'lives_in_condo': livesInCondo,
+      }).eq('id', response.user!.id);
     }
+
+    return response;
   }
 
   Future<bool> updateFullProfile({
@@ -243,15 +239,13 @@ class UserService {
   }) async {
     try {
       // 1. Update email in Auth if it changed
-      // We'll wrap this in a try-catch because the RPC might not exist
       try {
         await _supabase.rpc('admin_update_user_email', params: {
           'target_user_id': userId,
           'new_email': email,
         });
       } catch (e) {
-        debugPrint('Warning: RPC admin_update_user_email failed or not found. Email not updated in Auth: $e');
-        // We continue to update the profile table even if auth email fails
+        debugPrint('Warning: RPC admin_update_user_email failed. Email not updated in Auth: $e');
       }
 
       // 2. Update profiles table

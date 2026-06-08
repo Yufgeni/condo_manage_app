@@ -77,7 +77,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
       carBrand: carBrandController.text.trim(),
       carColor: carColorController.text.trim(),
       carPlates: carPlatesController.text.trim(),
-      date: _selectedDate!,
+      entryAt: _selectedDate!,
     );
 
     final success = await visitorProvider.addVisitor(newVisitor, profileId);

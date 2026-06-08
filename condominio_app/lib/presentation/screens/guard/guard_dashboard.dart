@@ -78,6 +78,27 @@ class _GuardDashboardState extends State<GuardDashboard> {
                 mainAxisSpacing: 12,
                 children: [
                   _GuardCard(
+                    title: 'Registrar Entrada',
+                    icon: Icons.person_add_alt_1,
+                    color: Colors.green,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeGuardVisitorRegistration),
+                  ),
+                  _GuardCard(
+                    title: 'Registrar Salida',
+                    icon: Icons.logout,
+                    color: Colors.orange,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeActiveVisitors),
+                  ),
+                  _GuardCard(
+                    title: 'Bitácora de Accesos',
+                    icon: Icons.assignment,
+                    color: Colors.blueGrey,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeVisitorHistory),
+                  ),
+                  _GuardCard(
                     title: 'Subir Reporte',
                     icon: Icons.upload_file,
                     color: Colors.blue,
@@ -85,25 +106,18 @@ class _GuardDashboardState extends State<GuardDashboard> {
                         context, AppConstants.routeGuardUpload),
                   ),
                   _GuardCard(
-                    title: 'Ver Residentes',
-                    icon: Icons.people_alt,
-                    color: Colors.blueGrey,
-                    onTap: () => Navigator.pushNamed(
-                        context, AppConstants.routeGuardResidents),
-                  ),
-                  _GuardCard(
-                    title: 'Ver Visitantes',
-                    icon: Icons.group_add_outlined,
-                    color: Colors.orange,
-                    onTap: () => Navigator.pushNamed(
-                        context, AppConstants.routeAdminVisitors),
-                  ),
-                  _GuardCard(
                     title: 'Mis Reportes',
                     icon: Icons.history,
                     color: Colors.teal,
                     onTap: () => Navigator.pushNamed(
                         context, AppConstants.routeGuardReports),
+                  ),
+                  _GuardCard(
+                    title: 'Ver Residentes',
+                    icon: Icons.people_alt,
+                    color: Colors.deepPurple,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeGuardResidents),
                   ),
                 ],
               ),
@@ -114,6 +128,7 @@ class _GuardDashboardState extends State<GuardDashboard> {
     );
   }
 }
+
 
 class _GuardCard extends StatelessWidget {
   final String title;

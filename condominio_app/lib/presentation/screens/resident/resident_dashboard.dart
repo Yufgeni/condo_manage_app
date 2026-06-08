@@ -37,18 +37,25 @@ class ResidentDashboard extends StatelessWidget {
                 mainAxisSpacing: 12,
                 children: [
                   _ResidentCard(
+                    title: 'Historial de Accesos',
+                    icon: Icons.history_edu,
+                    color: Colors.indigo,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeVisitorHistory),
+                  ),
+                  _ResidentCard(
+                    title: 'Agendar Visita',
+                    icon: Icons.group_add_outlined,
+                    color: Colors.orange,
+                    onTap: () => Navigator.pushNamed(
+                        context, AppConstants.routeVisitors),
+                  ),
+                  _ResidentCard(
                     title: 'Mis Pagos',
                     icon: Icons.receipt_long,
                     color: Colors.blue,
                     onTap: () => Navigator.pushNamed(
                         context, AppConstants.routeResidentPaymentsMenu),
-                  ),
-                  _ResidentCard(
-                    title: 'Mis Visitantes',
-                    icon: Icons.group_add_outlined,
-                    color: Colors.orange,
-                    onTap: () => Navigator.pushNamed(
-                        context, AppConstants.routeVisitors),
                   ),
                   _ResidentCard(
                     title: 'Vigilante en Turno',

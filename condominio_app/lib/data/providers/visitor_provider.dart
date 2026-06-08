@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/visitor_model.dart';
 import '../models/resident_model.dart';
@@ -9,11 +10,15 @@ class VisitorProvider extends ChangeNotifier {
   final ResidentService _residentService = ResidentService();
   
   List<VisitorModel> _visitors = [];
-  List<VisitorModel> _allResidentVisitors = []; // New list for all visitors
+  List<VisitorModel> _allResidentVisitors = []; 
+  List<VisitorModel> _activeVisitors = [];
+  List<VisitorModel> _globalHistory = [];
   bool _isLoading = false;
 
   List<VisitorModel> get visitors => _visitors;
   List<VisitorModel> get allResidentVisitors => _allResidentVisitors;
+  List<VisitorModel> get activeVisitors => _activeVisitors;
+  List<VisitorModel> get globalHistory => _globalHistory;
   bool get isLoading => _isLoading;
 
   Future<void> loadAllVisitorsByResident(String profileId) async {
@@ -48,17 +53,56 @@ class VisitorProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> loadActiveVisitors() async {
+    _isLoading = true;
+    notifyListeners();
+    _activeVisitors = await _visitorService.getActiveVisitors();
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> loadGlobalHistory(DateTime start, DateTime end) async {
+    _isLoading = true;
+    notifyListeners();
+    _globalHistory = await _visitorService.getGlobalVisitorHistory(start, end);
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> markExit(String visitorId) async {
+    _isLoading = true;
+    notifyListeners();
+    final success = await _visitorService.markVisitorExit(visitorId);
+    if (success) {
+      _activeVisitors.removeWhere((v) => v.id == visitorId);
+    }
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
+  Future<bool> registerVisitor(VisitorModel visitor, {File? idImage}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final success = await _visitorService.registerVisitor(visitor, idImage: idImage);
+    
+    if (success) {
+      await loadActiveVisitors();
+    }
+    
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
   Future<bool> addVisitor(VisitorModel visitor, String profileId) async {
     _isLoading = true;
     notifyListeners();
     
     String finalResidentId = visitor.residentId;
 
-    // Si el resident_id está vacío (como en el caso del Admin la primera vez)
-    // Usamos el servicio de residentes que ya tiene la lógica de "crear si no existe"
     if (finalResidentId.isEmpty) {
-      // Intentamos registrar un vehículo dummy o simplemente forzar la creación del resident
-      // Usaremos la lógica de addVehicle que ya maneja la creación de la ficha de residente
       final success = await _residentService.addVehicle(profileId, CarInfo(brand: 'PROPIO', year: '', color: '', plates: 'INTERNO'));
       
       if (success) {
@@ -78,9 +122,15 @@ class VisitorProvider extends ChangeNotifier {
       residentId: finalResidentId,
       name: visitor.name,
       carBrand: visitor.carBrand,
+      carModel: visitor.carModel,
       carColor: visitor.carColor,
       carPlates: visitor.carPlates,
-      date: visitor.date,
+      entryAt: visitor.entryAt,
+      exitAt: visitor.exitAt,
+      guardId: visitor.guardId,
+      idImageUrl: visitor.idImageUrl,
+      comments: visitor.comments,
+      unitNumber: visitor.unitNumber,
     ));
 
     if (success) {
@@ -99,6 +149,7 @@ class VisitorProvider extends ChangeNotifier {
     final success = await _visitorService.deleteVisitor(visitorId);
     if (success) {
       _visitors.removeWhere((v) => v.id == visitorId);
+      _activeVisitors.removeWhere((v) => v.id == visitorId);
     }
 
     _isLoading = false;

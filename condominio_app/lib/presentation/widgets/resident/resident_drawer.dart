@@ -47,19 +47,27 @@ class ResidentDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.history_edu, color: Colors.indigo),
+            title: const Text('Historial de Accesos'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeVisitorHistory);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.group_add_outlined, color: Colors.orange),
+            title: const Text('Agendar Visita'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeVisitors);
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.receipt_long, color: Colors.blue),
             title: const Text('Mis Pagos'),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppConstants.routeResidentPaymentsMenu);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.group_add_outlined, color: Colors.orange),
-            title: const Text('Mis Visitantes'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, AppConstants.routeVisitors);
             },
           ),
           ListTile(

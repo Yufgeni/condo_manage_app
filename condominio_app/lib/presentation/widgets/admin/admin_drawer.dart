@@ -45,6 +45,14 @@ class AdminDrawer extends StatelessWidget {
                 context, AppConstants.routeAdminDashboard),
           ),
           ListTile(
+            leading: const Icon(Icons.history_edu, color: Colors.redAccent),
+            title: const Text('Historial de Accesos'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeVisitorHistory);
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.people, color: Colors.blue),
             title: const Text('Residentes'),
             onTap: () => Navigator.pushNamed(context, AppConstants.routeResidents),
@@ -58,14 +66,6 @@ class AdminDrawer extends StatelessWidget {
             leading: const Icon(Icons.payments, color: Colors.orange),
             title: const Text('Finanzas'),
             onTap: () => Navigator.pushNamed(context, AppConstants.routeFinance),
-          ),
-          ListTile(
-            leading: const Icon(Icons.group_add_outlined, color: Colors.redAccent),
-            title: const Text('Ver visitantes'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, AppConstants.routeAdminVisitors);
-            },
           ),
           ListTile(
             leading: const Icon(Icons.assignment_outlined, color: Colors.teal),

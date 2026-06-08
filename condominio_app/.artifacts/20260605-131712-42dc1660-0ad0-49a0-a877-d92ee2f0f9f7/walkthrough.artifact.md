@@ -1,25 +1,23 @@
-# Walkthrough - Simplified Receipt Sharing for Elderly Users
+# Walkthrough - Bug Fix: User Already Exists & Profile Management
 
-I have implemented a robust and easy-to-use system for generating and sharing receipts, specifically optimized for older administrators who need a clear, guided process.
+I have addressed the issue where creating a new 'Vigilante' (Guard) profile would fail silently with a generic error when the email was already registered.
 
-## 1. Professional & Clear PDFs (No More Crashes)
-The previous "RangeError" was caused by corrupt font files. I've replaced them with high-quality, professional fonts (Noto Sans).
-- **Accents and Ñ**: Resident names like "García" or "Núñez" now look perfect.
-- **Stability**: The app will no longer crash when generating the document.
+## 1. Clear Error Identification
+The error `user_already_exists` in Supabase Auth means that the email address provided is already linked to an account in the system (perhaps as a Resident or an Admin).
 
-## 2. Assisted WhatsApp Sharing (Elderly-Friendly)
-Android 14's security prevents apps from attaching files automatically while in the background. To make this easy for everyone, I've created a "Guided Flow":
+- **Improvement**: I updated the `AdminProvider` and `UserService` to capture this specific error. Now, instead of a generic "Error", the administrator will see:
+  > "El correo electrónico ya está registrado en el sistema. Si desea cambiar el rol de este usuario, use la pestaña 'Modificar perfil'."
 
-1.  **Open Chat**: When you click "SÍ, ENVIAR", the app immediately opens WhatsApp in the resident's chat. This sends the text message and makes the contact appear at the top of the list.
-2.  **Return and Attach**: When you return to the app, you will see a **large, clear window** with a big blue button.
-3.  **One-Click Attachment**: Just click the blue button **"ENVIAR ARCHIVO PDF"**.
-4.  **Send**: The sharing menu will appear. Since you just talked to the resident, WhatsApp will show their name as the first option. Just tap their photo and the file is sent!
+## 2. Profile Management Logic
+- **Prevention**: This change prevents administrators from creating duplicate accounts for the same person and encourages them to use the **Modify Profile** tab to assign the 'Vigilante' role to existing users.
+- **Consistency**: Verified that the "Modify Profile" tab correctly lists all users from the `profiles` table, including Admins and Residents, allowing their roles to be changed to 'Vigilante' if needed.
 
-## 3. Improved Reliability
-- **Background Handling**: By using a dialog, we ensure the app is in the "foreground," which satisfies Android's security rules and allows the file to be attached every time.
-- **Error Protection**: Added safeguards so that if anything fails, a helpful message is shown instead of a crash.
+## 3. Support for Admins Living in the Condo
+Confirmed that Administrators who live in the condo are correctly treated as residents for financial purposes:
+- **Finance Integration**: They appear in the resident selection list for manual payments.
+- **Payment History**: Their payments are correctly registered and linked to their profile, just like any other resident.
 
 ## Verification Summary
-- **No More Crashes**: Verified that Noto Sans handles all Spanish characters without any `RangeError`.
-- **Successful Attachment**: Confirmed that the "Two-Step" flow (Open Chat -> Dialog -> Share) successfully attaches the PDF on Android 14.
-- **UI Consistency**: Updated both `IncomeScreen` and `FinanceScreen` to use this new, easier flow.
+- **Error Handling**: The app now explicitly tells the user when an email is already taken.
+- **Database Consistency**: The role modification logic works as intended, ensuring that one email corresponds to exactly one profile with one or more roles (modeled as a single role field in this version).
+- **Admin-Resident Mapping**: Confirmed that the `lives_in_condo` flag in the `profiles` table and the corresponding entry in the `residents` table are correctly handled for Admin profiles.

@@ -45,6 +45,30 @@ class GuardDrawer extends StatelessWidget {
                 context, AppConstants.routeGuardDashboard),
           ),
           ListTile(
+            leading: const Icon(Icons.person_add_alt_1, color: Colors.green),
+            title: const Text('Registrar Entrada'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeGuardVisitorRegistration);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.orange),
+            title: const Text('Registrar Salida'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeActiveVisitors);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.assignment, color: Colors.blueGrey),
+            title: const Text('Bitácora de Accesos'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppConstants.routeVisitorHistory);
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.upload_file, color: Colors.blue),
             title: const Text('Subir Reporte'),
             onTap: () {
@@ -53,19 +77,11 @@ class GuardDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.people_alt, color: Colors.blueGrey),
+            leading: const Icon(Icons.people_alt, color: Colors.deepPurple),
             title: const Text('Ver Residentes'),
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppConstants.routeGuardResidents);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.group_add_outlined, color: Colors.orange),
-            title: const Text('Ver Visitantes'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, AppConstants.routeAdminVisitors);
             },
           ),
           ListTile(

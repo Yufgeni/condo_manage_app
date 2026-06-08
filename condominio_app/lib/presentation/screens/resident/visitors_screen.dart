@@ -135,7 +135,7 @@ class _CalendarVisitorsViewState extends State<_CalendarVisitorsView> {
   @override
   Widget build(BuildContext context) {
     final allVisitors = Provider.of<VisitorProvider>(context).visitors;
-    _dayVisitors = allVisitors.where((v) => isSameDay(v.date, _selectedDay)).toList();
+    _dayVisitors = allVisitors.where((v) => isSameDay(v.entryAt, _selectedDay)).toList();
 
     return Column(
       children: [
@@ -215,7 +215,7 @@ class _VisitorCard extends StatelessWidget {
     // Lógica para permitir eliminar solo si la fecha es hoy o futura
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final visitorDay = DateTime(visitor.date.year, visitor.date.month, visitor.date.day);
+    final visitorDay = DateTime(visitor.entryAt.year, visitor.entryAt.month, visitor.entryAt.day);
     final canDelete = !visitorDay.isBefore(today);
 
     return Card(
@@ -239,7 +239,7 @@ class _VisitorCard extends StatelessWidget {
           ],
         ),
         title: Text(visitor.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-        subtitle: Text('Fecha: ${DateFormat('dd/MM/yyyy').format(visitor.date)}',
+        subtitle: Text('Fecha: ${DateFormat('dd/MM/yyyy').format(visitor.entryAt)}',
             style: TextStyle(fontSize: 12, color: Colors.grey[600])),
         children: [
           Padding(

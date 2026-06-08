@@ -29,6 +29,9 @@ import '../screens/admin/admin_reports_screen.dart';
 import '../screens/guard/guard_residents_screen.dart';
 import '../screens/admin/admin_profiles_screen.dart';
 import '../screens/admin/signature_pad_screen.dart';
+import '../screens/guard/guard_visitor_registration_screen.dart';
+import '../screens/guard/active_visitors_screen.dart';
+import '../screens/common/visitor_history_screen.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> get routes => {
@@ -63,5 +66,10 @@ class AppRoutes {
         AppConstants.routeGuardUpload: (_) => const GuardUploadScreen(),
         AppConstants.routeGuardReports: (_) => const GuardReportsListScreen(),
         AppConstants.routeGuardResidents: (_) => const GuardResidentsScreen(),
+        
+        // New Visitor Tracking Routes
+        AppConstants.routeGuardVisitorRegistration: (_) => const GuardVisitorRegistrationScreen(),
+        AppConstants.routeActiveVisitors: (_) => const ActiveVisitorsScreen(),
+        AppConstants.routeVisitorHistory: (_) => const VisitorHistoryScreen(),
       };
 }
