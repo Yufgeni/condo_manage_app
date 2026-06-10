@@ -1,11 +1,31 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/user_model.dart';
 import '../models/payment_model.dart';
 import '../models/expense_model.dart';
 
 class FinanceService {
   final _supabase = Supabase.instance.client;
+
+  Future<UserModel?> getTreasurerProfile() async {
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select()
+          .eq('role', 'admin')
+          .eq('is_treasurer', true)
+          .maybeSingle();
+
+      if (response != null) {
+        return UserModel.fromJson(response);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting treasurer profile: $e');
+      return null;
+    }
+  }
 
   // --- PAGOS (Payments) ---
 
@@ -27,7 +47,7 @@ class FinanceService {
     try {
       final response = await _supabase
           .from('payments')
-          .select('*, residents(profiles(name, phone))')
+          .select('*, residents(profiles(name, last_name, phone))')
           .eq('status', 'pending')
           .order('created_at', ascending: false);
       
@@ -96,7 +116,7 @@ class FinanceService {
         'status': payment.status,
         'receipt_url': receiptUrl,
         'description': payment.description,
-      }).select('*, residents(profiles(name, phone))').single();
+      }).select('*, residents(profiles(name, last_name, phone))').single();
       
       return PaymentModel.fromJson(response);
     } catch (e) {
@@ -157,7 +177,7 @@ class FinanceService {
     try {
       final response = await _supabase
           .from('payments')
-          .select('*, residents(profiles(name, phone))')
+          .select('*, residents(profiles(name, last_name, phone))')
           .eq('month', month)
           .eq('year', year)
           .eq('status', 'paid');

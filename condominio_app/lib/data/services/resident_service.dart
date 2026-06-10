@@ -15,9 +15,13 @@ class ResidentService {
 
       for (var data in (residentsResponse as List)) {
         final profile = data['profiles'];
+        final fullName = (profile['name'] != null && profile['last_name'] != null)
+            ? '${profile['name']} ${profile['last_name']}'
+            : (profile['name'] ?? '');
+            
         residentMap[data['profile_id']] = ResidentModel.fromJson({
           ...data,
-          'name': profile['name'],
+          'name': fullName,
           'email': profile['email'],
           'phone': profile['phone'],
           'photoUrl': profile['photo_url'],
@@ -34,11 +38,15 @@ class ResidentService {
       for (var profile in (profilesResponse as List)) {
         final String profileId = profile['id'];
         if (!residentMap.containsKey(profileId)) {
+          final fullName = (profile['name'] != null && profile['last_name'] != null)
+              ? '${profile['name']} ${profile['last_name']}'
+              : (profile['name'] ?? '');
+              
           // If not in residents table, create a dummy resident model for selection
           residentMap[profileId] = ResidentModel(
             id: '', 
             profileId: profileId,
-            name: profile['name'],
+            name: fullName,
             email: profile['email'],
             phone: profile['phone'],
             unitNumber: 'S/N',
@@ -64,9 +72,13 @@ class ResidentService {
       
       if (response != null) {
         final profile = response['profiles'];
+        final fullName = (profile['name'] != null && profile['last_name'] != null)
+            ? '${profile['name']} ${profile['last_name']}'
+            : (profile['name'] ?? '');
+
         return ResidentModel.fromJson({
           ...response,
-          'name': profile['name'],
+          'name': fullName,
           'email': profile['email'],
           'phone': profile['phone'],
           'photoUrl': profile['photo_url'],
@@ -80,10 +92,14 @@ class ResidentService {
           .eq('id', userId)
           .single();
       
+      final fullName = (profileResponse['name'] != null && profileResponse['last_name'] != null)
+          ? '${profileResponse['name']} ${profileResponse['last_name']}'
+          : (profileResponse['name'] ?? '');
+
       return ResidentModel(
         id: '',
         profileId: userId,
-        name: profileResponse['name'] ?? '',
+        name: fullName,
         email: profileResponse['email'] ?? '',
         phone: profileResponse['phone'] ?? '',
         unitNumber: '',

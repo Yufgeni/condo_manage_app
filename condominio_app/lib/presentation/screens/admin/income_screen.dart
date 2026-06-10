@@ -238,9 +238,16 @@ class _IncomeScreenState extends State<IncomeScreen> {
                 const Text('Detalles del Pago', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<ResidentModel>(
+                  isExpanded: true, // Asegura que el contenido use el espacio disponible
                   decoration: const InputDecoration(labelText: 'Residente', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
                   initialValue: _selectedResident,
-                  items: residents.map((r) => DropdownMenuItem(value: r, child: Text('${r.name} (${r.unitNumber})'))).toList(),
+                  items: residents.map((r) => DropdownMenuItem(
+                    value: r, 
+                    child: Text(
+                      '${r.name} (${r.unitNumber})', 
+                      overflow: TextOverflow.ellipsis, // Previene el desbordamiento si el nombre es muy largo
+                    )
+                  )).toList(),
                   onChanged: (v) => setState(() {
                     _selectedResident = v;
                   }),

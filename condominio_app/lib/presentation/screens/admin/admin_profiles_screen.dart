@@ -149,6 +149,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
   String _fullPhoneNumber = '';
   String _selectedRole = AppConstants.roleResident;
   bool _livesInCondo = true;
+  bool _isTreasurer = false;
 
   @override
   void dispose() {
@@ -171,6 +172,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
     setState(() {
       _selectedRole = AppConstants.roleResident;
       _livesInCondo = true;
+      _isTreasurer = false;
     });
   }
 
@@ -237,6 +239,15 @@ class _NewProfileTabState extends State<_NewProfileTab> {
                 onChanged: (v) => setState(() => _livesInCondo = v),
               ),
             ],
+            if (_selectedRole == AppConstants.roleAdmin) ...[
+              const SizedBox(height: 12),
+              SwitchListTile(
+                title: const Text('¿Es Tesorero?'),
+                subtitle: const Text('Solo puede haber un tesorero activo'),
+                value: _isTreasurer,
+                onChanged: (v) => setState(() => _isTreasurer = v),
+              ),
+            ],
             if (_selectedRole == AppConstants.roleResident || (_selectedRole == AppConstants.roleAdmin && _livesInCondo)) ...[
               const SizedBox(height: 12),
               CustomTextField(
@@ -269,6 +280,12 @@ class _NewProfileTabState extends State<_NewProfileTab> {
                 
                 if (confirmed != true) return;
 
+                // Si se marca como tesorero, pedir contraseña por seguridad
+                if (_isTreasurer && mounted) {
+                  final passConfirmed = await AdminProfilesScreen.showPasswordDialog(context);
+                  if (passConfirmed != true) return;
+                }
+
                 final success = await adminProvider.createProfile(
                   email: _emailController.text.trim(),
                   password: _passwordController.text,
@@ -280,6 +297,7 @@ class _NewProfileTabState extends State<_NewProfileTab> {
                   phone: _fullPhoneNumber.isNotEmpty ? _fullPhoneNumber : _phoneController.text.trim(),
                   unitNumber: (_selectedRole == AppConstants.roleResident || (_selectedRole == AppConstants.roleAdmin && _livesInCondo)) ? _unitNumberController.text.trim() : null,
                   livesInCondo: _livesInCondo,
+                  isTreasurer: _isTreasurer,
                 );
                 if (success && mounted) {
                   UIUtils.showSnackBar(context, 'Perfil creado exitosamente', isError: false);
@@ -335,6 +353,7 @@ class _UserCardState extends State<_UserCard> {
   bool _isEditing = false;
   bool _isOnDutyCheck = false;
   bool _livesInCondoCheck = true;
+  bool _isTreasurerCheck = false;
   final _newPasswordController = TextEditingController();
   final _unitNumberController = TextEditingController();
   final _nameController = TextEditingController();
@@ -349,6 +368,7 @@ class _UserCardState extends State<_UserCard> {
     super.initState();
     _isOnDutyCheck = widget.user.isOnDuty;
     _livesInCondoCheck = widget.user.livesInCondo;
+    _isTreasurerCheck = widget.user.isTreasurer;
     _unitNumberController.text = widget.user.unitNumber ?? '';
     _nameController.text = widget.user.name;
     _lastNameController.text = widget.user.lastName;
@@ -364,6 +384,7 @@ class _UserCardState extends State<_UserCard> {
     if (widget.user != oldWidget.user && !_isEditing) {
       _isOnDutyCheck = widget.user.isOnDuty;
       _livesInCondoCheck = widget.user.livesInCondo;
+      _isTreasurerCheck = widget.user.isTreasurer;
       _unitNumberController.text = widget.user.unitNumber ?? '';
       _nameController.text = widget.user.name;
       _lastNameController.text = widget.user.lastName;
@@ -444,6 +465,18 @@ class _UserCardState extends State<_UserCard> {
                       if (widget.user.role != AppConstants.roleGuard)
                         Text('¿Vive en el condominio?: ${widget.user.livesInCondo ? "Sí" : "No"}',
                             style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                      if (widget.user.role == AppConstants.roleAdmin && widget.user.isTreasurer)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.amber.shade300),
+                          ),
+                          child: const Text('TESORERO/A', 
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber)),
+                        ),
                     ],
                   ),
                 ),
@@ -511,6 +544,13 @@ class _UserCardState extends State<_UserCard> {
                   value: _livesInCondoCheck,
                   onChanged: (v) => setState(() => _livesInCondoCheck = v),
                 ),
+              if (_editingRole == AppConstants.roleAdmin)
+                SwitchListTile(
+                  title: const Text('¿Es Tesorero?'),
+                  subtitle: const Text('Solo puede haber un tesorero activo'),
+                  value: _isTreasurerCheck,
+                  onChanged: (v) => setState(() => _isTreasurerCheck = v),
+                ),
               if (_editingRole == AppConstants.roleResident || (_editingRole == AppConstants.roleAdmin && _livesInCondoCheck)) ...[
                 const SizedBox(height: 8),
                 CustomTextField(
@@ -562,6 +602,12 @@ class _UserCardState extends State<_UserCard> {
 
     if (confirmed != true) return;
 
+    // Si el cargo de tesorero cambia, pedir contraseña por seguridad
+    if (_isTreasurerCheck != widget.user.isTreasurer && context.mounted) {
+       final passConfirmed = await AdminProfilesScreen.showPasswordDialog(context);
+       if (passConfirmed != true) return;
+    }
+
     // 1. Password Update Logic
     if (_newPasswordController.text.isNotEmpty) {
       final passConfirmed = await AdminProfilesScreen.showPasswordDialog(context);
@@ -591,6 +637,7 @@ class _UserCardState extends State<_UserCard> {
       unitNumber: (_editingRole == AppConstants.roleResident || (_editingRole == AppConstants.roleAdmin && _livesInCondoCheck)) 
           ? _unitNumberController.text.trim() 
           : null,
+      isTreasurer: _isTreasurerCheck,
     );
 
     if (success) {

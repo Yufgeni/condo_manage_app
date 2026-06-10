@@ -96,6 +96,7 @@ class AdminProvider extends ChangeNotifier {
     String? phone,
     String? unitNumber,
     bool livesInCondo = true,
+    bool isTreasurer = false,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -113,6 +114,7 @@ class AdminProvider extends ChangeNotifier {
         phone: phone,
         unitNumber: unitNumber,
         livesInCondo: livesInCondo,
+        isTreasurer: isTreasurer,
       );
       await fetchUsers();
       _isLoading = false;
@@ -232,6 +234,7 @@ class AdminProvider extends ChangeNotifier {
     required String role,
     required bool livesInCondo,
     String? unitNumber,
+    bool isTreasurer = false,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -245,20 +248,27 @@ class AdminProvider extends ChangeNotifier {
       role: role,
       livesInCondo: livesInCondo,
       unitNumber: unitNumber,
+      isTreasurer: isTreasurer,
     );
 
     if (success) {
-      final index = _users.indexWhere((u) => u.id == userId);
-      if (index != -1) {
-        _users[index] = _users[index].copyWith(
-          name: name,
-          lastName: lastName,
-          email: email,
-          phone: phone,
-          role: role,
-          livesInCondo: livesInCondo,
-          unitNumber: unitNumber,
-        );
+      // Si el cargo de tesorero cambió, refrescamos toda la lista para asegurar la unicidad local
+      if (isTreasurer) {
+        await fetchUsers();
+      } else {
+        final index = _users.indexWhere((u) => u.id == userId);
+        if (index != -1) {
+          _users[index] = _users[index].copyWith(
+            name: name,
+            lastName: lastName,
+            email: email,
+            phone: phone,
+            role: role,
+            livesInCondo: livesInCondo,
+            unitNumber: unitNumber,
+            isTreasurer: isTreasurer,
+          );
+        }
       }
       _errorMessage = null;
     } else {

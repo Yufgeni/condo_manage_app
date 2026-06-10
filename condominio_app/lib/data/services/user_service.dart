@@ -181,6 +181,26 @@ class UserService {
     }
   }
   
+  Future<bool> setTreasurer(String userId) async {
+    try {
+      // 1. Quitar el cargo de tesorero a todos los perfiles
+      await _supabase
+          .from('profiles')
+          .update({'is_treasurer': false});
+
+      // 2. Activar al nuevo tesorero
+      await _supabase
+          .from('profiles')
+          .update({'is_treasurer': true})
+          .eq('id', userId);
+
+      return true;
+    } catch (e) {
+      print('Error setting treasurer: $e');
+      return false;
+    }
+  }
+
   Future<AuthResponse> createProfile({
     required String email,
     required String password,
@@ -192,6 +212,7 @@ class UserService {
     String? phone,
     String? unitNumber,
     bool livesInCondo = true,
+    bool isTreasurer = false,
   }) async {
     // No usamos try-catch aquí para que el Provider capture la excepción específica de Supabase
     final response = await _supabase.auth.signUp(
@@ -218,10 +239,16 @@ class UserService {
         });
       }
 
-      // 2. Asegurar que lives_in_condo se guarde en profiles (a veces los metadatos tardan en sincronizar)
+      // 2. Asegurar que lives_in_condo e is_treasurer se guarden en profiles
       await _supabase.from('profiles').update({
         'lives_in_condo': livesInCondo,
+        'is_treasurer': isTreasurer,
       }).eq('id', response.user!.id);
+
+      // 3. Si se marcó como tesorero, asegurar la unicidad
+      if (isTreasurer) {
+        await setTreasurer(response.user!.id);
+      }
     }
 
     return response;
@@ -236,6 +263,7 @@ class UserService {
     required String role,
     required bool livesInCondo,
     String? unitNumber,
+    bool isTreasurer = false,
   }) async {
     try {
       // 1. Update email in Auth if it changed
@@ -258,7 +286,15 @@ class UserService {
         'lives_in_condo': livesInCondo,
       }).eq('id', userId);
 
-      // 3. Handle residents table
+      // 3. Si es tesorero, manejar la unicidad
+      if (isTreasurer) {
+        await setTreasurer(userId);
+      } else {
+        // Si ya era tesorero y se le quita, simplemente actualizamos su registro
+        await _supabase.from('profiles').update({'is_treasurer': false}).eq('id', userId);
+      }
+
+      // 4. Handle residents table
       if (role == 'resident' || (role == 'admin' && unitNumber != null)) {
         final residentResponse = await _supabase
             .from('residents')

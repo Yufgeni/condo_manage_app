@@ -28,22 +28,23 @@ class AdminDashboard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => Navigator.pushNamed(context, AppConstants.routeAdminSignature),
-                icon: const Icon(Icons.gesture),
-                label: const Text('REGISTRAR FIRMA DIGITAL'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            if (authProvider.currentUser?.isTreasurer == true)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppConstants.routeAdminSignature),
+                  icon: const Icon(Icons.gesture),
+                  label: const Text('REGISTRAR FIRMA DIGITAL (TESORERÍA)'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber.shade800,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
-            ),
             const SizedBox(height: 24),
             Expanded(
               child: GridView.count(
