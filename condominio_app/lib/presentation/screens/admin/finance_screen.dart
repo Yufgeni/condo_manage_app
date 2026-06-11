@@ -143,18 +143,26 @@ class _ApprovePaymentsScreenState extends State<ApprovePaymentsScreen> {
                         subtitle: Text('Cuota ${payment.month} ${payment.year} - \$${payment.amount}'),
                         trailing: ElevatedButton(
                           onPressed: () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            final success = await financeProvider.approvePayment(payment.id);
-                            if (mounted && success) {
-                              messenger.showSnackBar(
-                                const SnackBar(content: Text('Pago aprobado exitosamente'), backgroundColor: Colors.green),
-                              );
+                            // 1. Capturamos TODA la información necesaria ANTES del await
+                            // para no depender del BuildContext después.
+                            final navigator = Navigator.of(context);
+                            final scaffoldMessenger = ScaffoldMessenger.of(context);
+                            final auth = Provider.of<AuthProvider>(context, listen: false);
+                            final residents = Provider.of<ResidentProvider>(context, listen: false);
+                            
+                            // Guardamos datos del pago actual
+                            final currentPayment = payment;
 
-                              // Preguntar por enviar recibo
+                            // 2. Realizamos la aprobación
+                            final success = await financeProvider.approvePayment(currentPayment.id);
+                            
+                            if (success) {
+                              // 3. Usamos el navigator capturado para mostrar el diálogo
+                              // Esto es mucho más seguro contra async gaps
                               final confirmed = await showDialog<bool>(
-                                context: context,
+                                context: navigator.context,
                                 barrierDismissible: false,
-                                builder: (context) => AlertDialog(
+                                builder: (dialogContext) => AlertDialog(
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                   title: const Column(
                                     children: [
@@ -175,7 +183,7 @@ class _ApprovePaymentsScreenState extends State<ApprovePaymentsScreen> {
                                         SizedBox(
                                           width: double.infinity,
                                           child: ElevatedButton.icon(
-                                            onPressed: () => Navigator.pop(context, true),
+                                            onPressed: () => Navigator.pop(dialogContext, true),
                                             icon: const Icon(Icons.send, color: Colors.white),
                                             label: const Text('SÍ, ENVIAR AHORA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                             style: ElevatedButton.styleFrom(
@@ -190,7 +198,7 @@ class _ApprovePaymentsScreenState extends State<ApprovePaymentsScreen> {
                                         SizedBox(
                                           width: double.infinity,
                                           child: TextButton(
-                                            onPressed: () => Navigator.pop(context, false),
+                                            onPressed: () => Navigator.pop(dialogContext, false),
                                             child: const Text('NO ENVIAR', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                                             style: TextButton.styleFrom(
                                               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -203,20 +211,26 @@ class _ApprovePaymentsScreenState extends State<ApprovePaymentsScreen> {
                                 ),
                               );
 
-                              if (confirmed == true && mounted) {
-                                final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                                final resident = residentProvider.allResidents.firstWhere(
-                                  (r) => r.id == payment.residentId,
-                                  orElse: () => residentProvider.allResidents.firstWhere((r) => r.profileId == payment.residentId, orElse: () => residentProvider.allResidents.first),
+                              if (confirmed == true) {
+                                final resident = residents.allResidents.firstWhere(
+                                  (r) => r.id == currentPayment.residentId,
+                                  orElse: () => residents.allResidents.firstWhere(
+                                    (r) => r.profileId == currentPayment.residentId, 
+                                    orElse: () => residents.allResidents.first
+                                  ),
                                 );
                                 
                                 await ReceiptPdfUtils.generateAndShareReceipt(
-                                  context: context,
-                                  payment: payment,
-                                  admin: authProvider.currentUser!,
+                                  context: navigator.context,
+                                  payment: currentPayment.copyWith(status: 'paid', paymentMethod: 'Transferencia'),
+                                  admin: auth.currentUser!,
                                   residentUnit: resident.unitNumber,
                                 );
                               }
+                              
+                              scaffoldMessenger.showSnackBar(
+                                const SnackBar(content: Text('Pago aprobado exitosamente'), backgroundColor: Colors.green),
+                              );
                             }
                           },
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.green),

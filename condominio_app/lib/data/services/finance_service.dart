@@ -114,6 +114,7 @@ class FinanceService {
         'month': payment.month,
         'year': int.tryParse(payment.year) ?? DateTime.now().year,
         'status': payment.status,
+        'payment_method': payment.paymentMethod,
         'receipt_url': receiptUrl,
         'description': payment.description,
       }).select('*, residents(profiles(name, last_name, phone))').single();
@@ -129,7 +130,10 @@ class FinanceService {
     try {
       await _supabase
           .from('payments')
-          .update({'status': 'paid'})
+          .update({
+            'status': 'paid',
+            'payment_method': 'Transferencia',
+          })
           .eq('id', paymentId);
       return true;
     } catch (e) {

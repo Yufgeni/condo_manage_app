@@ -24,6 +24,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
   String? _selectedYear;
   ResidentModel? _selectedResident;
   String? _selectedConcept;
+  String _selectedPaymentMethod = 'Efectivo';
   final _customConceptController = TextEditingController();
   final _amountController = TextEditingController();
   bool _showCustomConcept = false;
@@ -63,6 +64,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
       month: _selectedMonth!,
       year: _selectedYear!,
       concept: concept,
+      paymentMethod: _selectedPaymentMethod,
       amount: double.tryParse(_amountController.text) ?? 0.0,
       date: DateTime.now(),
     );
@@ -307,6 +309,18 @@ class _IncomeScreenState extends State<IncomeScreen> {
                     if (double.tryParse(v!) == null) return 'Monto inválido';
                     return null;
                   },
+                ),
+                const SizedBox(height: 16),
+                const Text('Método de Pago', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(border: OutlineInputBorder(), prefixIcon: Icon(Icons.payments_outlined)),
+                  value: _selectedPaymentMethod,
+                  items: const [
+                    DropdownMenuItem(value: 'Efectivo', child: Text('Efectivo')),
+                    DropdownMenuItem(value: 'Transferencia', child: Text('Transferencia')),
+                  ],
+                  onChanged: (v) => setState(() => _selectedPaymentMethod = v!),
                 ),
                 const SizedBox(height: 32),
                 CustomButton(

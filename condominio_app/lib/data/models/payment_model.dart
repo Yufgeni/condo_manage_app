@@ -7,6 +7,7 @@ class PaymentModel {
   final String month;
   final String year;
   final String status;
+  final String? paymentMethod; // Added
   final String? receiptUrl;
   final DateTime createdAt;
   final String? description;
@@ -20,6 +21,7 @@ class PaymentModel {
     required this.month,
     required this.year,
     this.status = 'pending',
+    this.paymentMethod,
     this.receiptUrl,
     required this.createdAt,
     this.description,
@@ -49,6 +51,7 @@ class PaymentModel {
       month: json['month'] ?? '',
       year: json['year']?.toString() ?? '',
       status: json['status'] ?? 'pending',
+      paymentMethod: json['payment_method'],
       receiptUrl: json['receipt_url'],
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
       description: json['description'],
@@ -61,11 +64,12 @@ class PaymentModel {
         'month': month,
         'year': year,
         'status': status,
+        'payment_method': paymentMethod,
         'receipt_url': receiptUrl,
         'description': description,
       };
 
-  PaymentModel copyWith({String? status, String? residentPhone}) {
+  PaymentModel copyWith({String? status, String? residentPhone, String? paymentMethod}) {
     return PaymentModel(
       id: id,
       residentId: residentId,
@@ -75,6 +79,7 @@ class PaymentModel {
       month: month,
       year: year,
       status: status ?? this.status,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
       receiptUrl: receiptUrl,
       createdAt: createdAt,
       description: description,

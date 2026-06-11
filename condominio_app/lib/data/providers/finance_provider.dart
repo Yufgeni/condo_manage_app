@@ -78,6 +78,7 @@ class FinanceProvider extends ChangeNotifier {
     required double amount,
     required String month,
     required String year,
+    String? paymentMethod,
     File? image,
     String? description,
     bool isAdminRegistration = false,
@@ -92,6 +93,7 @@ class FinanceProvider extends ChangeNotifier {
       month: month,
       year: year,
       status: isAdminRegistration ? 'paid' : 'pending',
+      paymentMethod: paymentMethod,
       createdAt: DateTime.now(),
       description: description,
     );
@@ -109,6 +111,7 @@ class FinanceProvider extends ChangeNotifier {
       amount: income.amount,
       month: income.month,
       year: income.year,
+      paymentMethod: income.paymentMethod,
       description: income.concept,
       isAdminRegistration: true,
     );
